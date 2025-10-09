@@ -1,60 +1,78 @@
 import { useState, useEffect } from 'react';
-import * as api from '../services/api';
-import { Line } from '../services/api';
+import { linesAPI } from '../services/api';
+
+export interface Line {
+  id: string;
+  numero: string;
+  estado: string;
+  plan: string;
+}
 
 export const useLines = () => {
   const [lines, setLines] = useState<Line[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchLines = async () => {
-      try {
-        setLoading(true);
-        const fetchedLines = await api.getLines();
-        setLines(fetchedLines);
-      } catch (err) {
-        setError('Error al cargar las líneas');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchLines = async () => {
+    try {
+      setLoading(true);
+      const response = await linesAPI.getLines();
+      setLines(response.data);
+    } catch (err) {
+      setError('Error al cargar las líneas');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchLines();
   }, []);
 
   const addLine = async (line: Omit<Line, 'id'>) => {
     try {
-      const newLine = await api.createLine(line);
-      setLines((prevLines) => [...prevLines, newLine]);
+      await linesAPI.createLine(line);
+      await fetchLines();
     } catch (err) {
       setError('Error al crear la línea');
       console.error(err);
+      throw err;
     }
   };
 
   const editLine = async (line: Line) => {
     try {
-      const updatedLine = await api.updateLine(line);
-      setLines((prevLines) =>
-        prevLines.map((l) => (l.id === updatedLine.id ? updatedLine : l))
-      );
+      await linesAPI.updateLine(line.id.toString(), line);
+      await fetchLines();
     } catch (err) {
       setError('Error al actualizar la línea');
       console.error(err);
+      throw err;
     }
   };
 
   const removeLine = async (lineId: string) => {
     try {
-      await api.deleteLine(lineId);
-      setLines((prevLines) => prevLines.filter((l) => l.id !== lineId));
+      await linesAPI.deleteLine(lineId);
+      await fetchLines();
     } catch (err) {
       setError('Error al eliminar la línea');
       console.error(err);
+      throw err;
     }
   };
 
-  return { lines, loading, error, addLine, editLine, removeLine };
+  const toggleStatus = async (lineId: string) => {
+    try {
+      await linesAPI.toggleStatus(lineId);
+      await fetchLines();
+    } catch (err) {
+      setError('Error al cambiar el estado');
+      console.error(err);
+      throw err;
+    }
+  };
+
+  return { lines, loading, error, addLine, editLine, removeLine, toggleStatus, refetch: fetchLines };
 };

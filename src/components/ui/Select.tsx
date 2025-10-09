@@ -1,10 +1,11 @@
 import React from 'react';
 
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
+  options: { value: string; label: string }[];
 }
 
-const Input: React.FC<InputProps> = ({ label, ...props }) => {
+const Select: React.FC<SelectProps> = ({ label, options, ...props }) => {
   return (
     <div>
       {label && (
@@ -12,12 +13,18 @@ const Input: React.FC<InputProps> = ({ label, ...props }) => {
           {label}
         </label>
       )}
-      <input
+      <select
         {...props}
         className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 focus:outline-none focus:ring-navy focus:border-navy focus:z-10 sm:text-sm"
-      />
+      >
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
     </div>
   );
 };
 
-export default Input;
+export default Select;

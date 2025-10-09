@@ -1,12 +1,13 @@
-import { createContext, useState, useContext, ReactNode } from 'react';
-import * as api from '../services/api';
+import { createContext, useState, useContext, useEffect, type ReactNode } from 'react';
+import axios from 'axios';
+import { authAPI } from '../services/api';
 
 // Define the shape of the user object
 export interface User {
   id: string;
-  name: string;
+  nombre: string;
   email: string;
-  role: string;
+  rol: string;
 }
 
 // Define the shape of the context
@@ -28,13 +29,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
+  // Load token and user from localStorage on mount
+  useEffect(() => {
+    const storedToken = localStorage.getItem('token');
+    const storedUser = localStorage.getItem('user');
+    if (storedToken && storedUser) {
+      setToken(storedToken);
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
-      const { token, user } = await api.login(email, password);
-      setToken(token);
-      setUser(user);
-      // In a real app, you'd store the token in localStorage/sessionStorage
+      const response = await authAPI.login(email, password);
+      const { token: newToken, user: newUser } = response.data;
+      setToken(newToken);
+      setUser(newUser);
+      localStorage.setItem('token', newToken);
+      localStorage.setItem('user', JSON.stringify(newUser));
+      // Set axios default header
+      axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
     } finally {
       setLoading(false);
     }
@@ -43,7 +58,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = () => {
     setToken(null);
     setUser(null);
-    // In a real app, you'd remove the token from storage
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    delete axios.defaults.headers.common['Authorization'];
   };
 
   const isAuthenticated = !!token;

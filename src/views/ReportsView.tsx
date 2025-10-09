@@ -1,70 +1,160 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import DataTable from '../components/shared/DataTable';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
+import Select from '../components/ui/Select';
+import { reportsAPI } from '../services/api';
 
 const ReportsView = () => {
-  const [reportType, setReportType] = useState('Líneas');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
+  const [reportData, setReportData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [filters, setFilters] = useState({
+    type: 'lineas',
+    startDate: '',
+    endDate: '',
+  });
 
-  const handleGenerateReport = () => {
-    console.log('Generating report with:', { reportType, startDate, endDate });
-    setSuccessMessage(`Reporte de ${reportType} generado exitosamente.`);
-    setTimeout(() => setSuccessMessage(''), 3000);
+  const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setFilters({ ...filters, [e.target.name]: e.target.value });
   };
+
+  const handleGenerateReport = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      let response;
+      const params = {
+        startDate: filters.startDate || undefined,
+        endDate: filters.endDate || undefined,
+      };
+
+      switch (filters.type) {
+        case 'lineas':
+          response = await reportsAPI.getLinesReport(params);
+          break;
+        case 'equipos':
+          response = await reportsAPI.getEquipmentsReport(params);
+          break;
+        case 'asignaciones':
+          response = await reportsAPI.getAssignmentsReport(params);
+          break;
+        default:
+          throw new Error('Tipo de reporte no válido');
+      }
+
+      setReportData(response.data);
+    } catch (err) {
+      setError('Error al generar el reporte');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getHeaders = () => {
+    switch (filters.type) {
+      case 'lineas':
+        return ['Número', 'Estado', 'Plan', 'Usuario'];
+      case 'equipos':
+        return ['Modelo', 'Marca', 'Estado', 'Fecha Reparación'];
+      case 'asignaciones':
+        return ['Usuario', 'Línea', 'Equipo', 'Fecha Asignación'];
+      default:
+        return [];
+    }
+  };
+
+  const renderRow = (item: any, index: number) => {
+    switch (filters.type) {
+      case 'lineas':
+        return (
+          <tr key={index}>
+            <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{item.numero}</td>
+            <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{item.estado}</td>
+            <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{item.plan}</td>
+            <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{item.usuario}</td>
+          </tr>
+        );
+      case 'equipos':
+        return (
+          <tr key={index}>
+            <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{item.modelo}</td>
+            <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{item.marca}</td>
+            <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{item.estado}</td>
+            <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{item.fechaReparacion}</td>
+          </tr>
+        );
+      case 'asignaciones':
+        return (
+          <tr key={index}>
+            <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{item.usuario}</td>
+            <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{item.linea}</td>
+            <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{item.equipo}</td>
+            <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{item.fechaAsignacion}</td>
+          </tr>
+        );
+      default:
+        return <tr key={index}></tr>;
+    }
+  };
+
+  const reportTypeOptions = [
+    { value: 'lineas', label: 'Líneas' },
+    { value: 'equipos', label: 'Equipos' },
+    { value: 'asignaciones', label: 'Asignaciones' },
+  ];
 
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4 dark:text-white">Gestión de Reportes</h1>
-      <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label htmlFor="report-type" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Tipo de Reporte</label>
-            <select 
-              id="report-type" 
-              name="report-type" 
-              className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md dark:bg-gray-700 dark:text-white"
-              value={reportType}
-              onChange={(e) => setReportType(e.target.value)}
-            >
-              <option>Líneas</option>
-              <option>Equipos</option>
-              <option>Asignaciones</option>
-            </select>
-          </div>
-          <div>
-            <Input 
-              id='start-date' 
-              name='start-date' 
-              label='Fecha de Inicio' 
-              type='date' 
-              required
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-            />
-          </div>
-          <div>
-            <Input 
-              id='end-date' 
-              name='end-date' 
-              label='Fecha de Fin' 
-              type='date' 
-              required
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-            />
+      <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">Reportes</h1>
+
+      <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 mb-6">
+        <h2 className="text-xl font-semibold mb-4">Filtros</h2>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Select
+            id="type"
+            name="type"
+            label="Tipo de Reporte"
+            options={reportTypeOptions}
+            value={filters.type}
+            onChange={handleFilterChange}
+          />
+          <Input
+            id="startDate"
+            name="startDate"
+            label="Fecha Inicio"
+            type="date"
+            value={filters.startDate}
+            onChange={handleFilterChange}
+          />
+          <Input
+            id="endDate"
+            name="endDate"
+            label="Fecha Fin"
+            type="date"
+            value={filters.endDate}
+            onChange={handleFilterChange}
+          />
+          <div className="flex items-end">
+            <Button onClick={handleGenerateReport} isLoading={loading}>
+              Generar Reporte
+            </Button>
           </div>
         </div>
-        <div className="mt-4">
-          <Button onClick={handleGenerateReport}>Generar Reporte</Button>
-        </div>
-        {successMessage && (
-          <div className="mt-4 p-3 bg-emerald bg-opacity-20 text-emerald rounded-md text-sm">
-            {successMessage}
-          </div>
-        )}
       </div>
+
+      {error && <p className="text-red-500 mb-4">{error}</p>}
+
+      {reportData.length > 0 && (
+        <DataTable
+          headers={getHeaders()}
+          data={reportData}
+          renderRow={renderRow}
+          searchable={true}
+          searchPlaceholder="Buscar en reporte..."
+        />
+      )}
     </div>
   );
 };

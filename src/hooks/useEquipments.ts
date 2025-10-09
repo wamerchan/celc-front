@@ -1,60 +1,78 @@
 import { useState, useEffect } from 'react';
-import * as api from '../services/api';
-import { Equipment } from '../services/api';
+import { equipmentsAPI } from '../services/api';
+
+export interface Equipment {
+  id: string;
+  modelo: string;
+  marca: string;
+  estado: string;
+}
 
 export const useEquipments = () => {
   const [equipments, setEquipments] = useState<Equipment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchEquipments = async () => {
-      try {
-        setLoading(true);
-        const fetchedEquipments = await api.getEquipments();
-        setEquipments(fetchedEquipments);
-      } catch (err) {
-        setError('Error al cargar los equipos');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchEquipments = async () => {
+    try {
+      setLoading(true);
+      const response = await equipmentsAPI.getEquipments();
+      setEquipments(response.data);
+    } catch (err) {
+      setError('Error al cargar los equipos');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchEquipments();
   }, []);
 
   const addEquipment = async (equipment: Omit<Equipment, 'id'>) => {
     try {
-      const newEquipment = await api.createEquipment(equipment);
-      setEquipments((prevEquipments) => [...prevEquipments, newEquipment]);
+      await equipmentsAPI.createEquipment(equipment);
+      await fetchEquipments();
     } catch (err) {
       setError('Error al crear el equipo');
       console.error(err);
+      throw err;
     }
   };
 
   const editEquipment = async (equipment: Equipment) => {
     try {
-      const updatedEquipment = await api.updateEquipment(equipment);
-      setEquipments((prevEquipments) =>
-        prevEquipments.map((e) => (e.id === updatedEquipment.id ? updatedEquipment : e))
-      );
+      await equipmentsAPI.updateEquipment(equipment.id.toString(), equipment);
+      await fetchEquipments();
     } catch (err) {
       setError('Error al actualizar el equipo');
       console.error(err);
+      throw err;
     }
   };
 
   const removeEquipment = async (equipmentId: string) => {
     try {
-      await api.deleteEquipment(equipmentId);
-      setEquipments((prevEquipments) => prevEquipments.filter((e) => e.id !== equipmentId));
+      await equipmentsAPI.deleteEquipment(equipmentId);
+      await fetchEquipments();
     } catch (err) {
       setError('Error al eliminar el equipo');
       console.error(err);
+      throw err;
     }
   };
 
-  return { equipments, loading, error, addEquipment, editEquipment, removeEquipment };
+  const repairEquipment = async (equipmentId: string, descripcion: string) => {
+    try {
+      await equipmentsAPI.repairEquipment(equipmentId, { descripcion });
+      await fetchEquipments();
+    } catch (err) {
+      setError('Error al registrar reparación');
+      console.error(err);
+      throw err;
+    }
+  };
+
+  return { equipments, loading, error, addEquipment, editEquipment, removeEquipment, repairEquipment, refetch: fetchEquipments };
 };

@@ -1,26 +1,30 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import DataTable from '../components/shared/DataTable';
 import Modal from '../components/shared/Modal';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import { useUsers } from '../hooks/useUsers';
-import { User } from '../context/AuthContext';
+import type { User } from '../context/AuthContext';
 
 const UsersView = () => {
   const { users, loading, error, addUser, editUser, removeUser } = useUsers();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
 
-  const headers = ['Name', 'Email', 'Role', 'Actions'];
+  const headers = ['Nombre', 'Email', 'Rol', 'Acciones'];
 
   const handleEdit = (user: User) => {
     setCurrentUser(user);
     setIsModalOpen(true);
   };
 
-  const handleDelete = (userId: string) => {
+  const handleDelete = async (userId: string) => {
     if (window.confirm('¿Estás seguro de que quieres eliminar este usuario?')) {
-      removeUser(userId);
+      try {
+        await removeUser(userId);
+      } catch (err) {
+        alert('Error al eliminar usuario');
+      }
     }
   };
 
@@ -29,23 +33,27 @@ const UsersView = () => {
     setIsModalOpen(true);
   };
 
-  const handleSave = (user: Omit<User, 'id'> | User) => {
-    if ('id' in user) {
-      editUser(user as User);
-    } else {
-      addUser(user as Omit<User, 'id'>);
+  const handleSave = async (user: Omit<User, 'id'> | User) => {
+    try {
+      if ('id' in user) {
+        await editUser(user as User);
+      } else {
+        await addUser(user as Omit<User, 'id'>);
+      }
+      setIsModalOpen(false);
+    } catch (err) {
+      alert('Error al guardar usuario');
     }
-    setIsModalOpen(false);
   };
 
   const renderRow = (user: User) => (
     <tr key={user.id}>
-      <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{user.name}</td>
+      <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{user.nombre}</td>
       <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{user.email}</td>
-      <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{user.role}</td>
+      <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{user.rol}</td>
       <td className="px-6 py-4 whitespace-nowrap">
-        <Button onClick={() => handleEdit(user)}>Editar</Button>
-        <Button onClick={() => handleDelete(user.id)} className="ml-2 bg-coral">Eliminar</Button>
+        <Button onClick={() => handleEdit(user)} className="mr-2">Editar</Button>
+        <Button onClick={() => handleDelete(user.id.toString())} variant="danger">Eliminar</Button>
       </td>
     </tr>
   );
@@ -56,11 +64,11 @@ const UsersView = () => {
         <h1 className="text-2xl font-bold dark:text-white">Gestión de Usuarios</h1>
         <Button onClick={handleCreate}>Crear Usuario</Button>
       </div>
-      {error && <p className="text-red-500">{error}</p>}
-      <DataTable 
-        headers={headers} 
-        data={users} 
-        renderRow={renderRow} 
+      {error && <p className="text-red-500 mb-4">{error}</p>}
+      <DataTable
+        headers={headers}
+        data={users}
+        renderRow={renderRow}
         searchable={true}
         searchPlaceholder="Buscar usuarios..."
       />
@@ -76,16 +84,21 @@ const UsersView = () => {
   );
 };
 
-const UserFormModal = ({ isOpen, onClose, onSave, user }: {
+const UserFormModal = ({
+  isOpen,
+  onClose,
+  onSave,
+  user
+}: {
   isOpen: boolean;
   onClose: () => void;
   onSave: (user: Omit<User, 'id'> | User) => void;
   user: User | null;
 }) => {
   const [formData, setFormData] = useState({
-    name: user?.name || '',
+    nombre: user?.nombre || '',
     email: user?.email || '',
-    role: user?.role || '',
+    rol: user?.rol || '',
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -104,37 +117,37 @@ const UserFormModal = ({ isOpen, onClose, onSave, user }: {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={user ? 'Editar Usuario' : 'Crear Usuario'}>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <Input 
-          id='name' 
-          name='name' 
-          label='Name' 
-          placeholder='John Doe' 
-          required 
-          value={formData.name}
+        <Input
+          id="nombre"
+          name="nombre"
+          label="Nombre"
+          placeholder="John Doe"
+          required
+          value={formData.nombre}
           onChange={handleChange}
         />
-        <Input 
-          id='email' 
-          name='email' 
-          label='Email' 
-          placeholder='john@example.com' 
-          required 
+        <Input
+          id="email"
+          name="email"
+          label="Email"
+          placeholder="john@example.com"
+          required
           value={formData.email}
           onChange={handleChange}
         />
-        <Input 
-          id='role' 
-          name='role' 
-          label='Role' 
-          placeholder='Admin' 
-          required 
-          value={formData.role}
+        <Input
+          id="rol"
+          name="rol"
+          label="Rol"
+          placeholder="Administrador"
+          required
+          value={formData.rol}
           onChange={handleChange}
         />
         <Button type="submit">Guardar</Button>
       </form>
     </Modal>
-  )
-}
+  );
+};
 
 export default UsersView;

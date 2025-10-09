@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { useNavigation } from '../context/NavigationContext';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const Sidebar = ({ isOpen, toggleSidebar }: { isOpen: boolean; toggleSidebar: () => void }) => {
-  const { navigate } = useNavigation();
+  const navigate = useNavigate();
 
   const handleNavigate = (path: string) => {
     navigate(path);
@@ -18,9 +18,9 @@ const Sidebar = ({ isOpen, toggleSidebar }: { isOpen: boolean; toggleSidebar: ()
       <nav>
         <ul>
           <li className="p-4 hover:bg-gray-700 cursor-pointer" onClick={() => handleNavigate('/dashboard')}>Dashboard</li>
-          <li className="p-4 hover:bg-gray-700 cursor-pointer" onClick={() => handleNavigate('/gestion-usuarios')}>Usuarios</li>
-          <li className="p-4 hover:bg-gray-700 cursor-pointer" onClick={() => handleNavigate('/gestion-lineas')}>Líneas</li>
-          <li className="p-4 hover:bg-gray-700 cursor-pointer" onClick={() => handleNavigate('/gestion-equipos')}>Equipos</li>
+          <li className="p-4 hover:bg-gray-700 cursor-pointer" onClick={() => handleNavigate('/usuarios')}>Usuarios</li>
+          <li className="p-4 hover:bg-gray-700 cursor-pointer" onClick={() => handleNavigate('/lineas')}>Líneas</li>
+          <li className="p-4 hover:bg-gray-700 cursor-pointer" onClick={() => handleNavigate('/equipos')}>Equipos</li>
           <li className="p-4 hover:bg-gray-700 cursor-pointer" onClick={() => handleNavigate('/asignaciones')}>Asignaciones</li>
           <li className="p-4 hover:bg-gray-700 cursor-pointer" onClick={() => handleNavigate('/revisiones')}>Revisiones</li>
           <li className="p-4 hover:bg-gray-700 cursor-pointer" onClick={() => handleNavigate('/reportes')}>Reportes</li>
@@ -40,7 +40,7 @@ const Header = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
           <svg className="w-6 h-6 text-gray-800 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
         </button>
         <div className="flex items-center">
-          <div className="text-gray-800 dark:text-white">{user?.name}</div>
+          <div className="text-gray-800 dark:text-white">{user?.nombre}</div>
           <button onClick={logout} className="ml-4 text-sm text-gray-500 hover:text-gray-700">Logout</button>
         </div>
       </div>
@@ -48,7 +48,7 @@ const Header = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
   );
 };
 
-const MainLayout = ({ children }: { children: React.ReactNode }) => {
+const AppLayout = ({ children }: { children: React.ReactNode }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const toggleSidebar = () => {
@@ -67,4 +67,4 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-export default MainLayout;
+export default AppLayout;

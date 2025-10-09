@@ -1,60 +1,70 @@
 import { useState, useEffect } from 'react';
-import * as api from '../services/api';
-import { Assignment } from '../services/api';
+import { assignmentsAPI } from '../services/api';
+
+export interface Assignment {
+  id: string;
+  usuarioId: string;
+  lineaId: string;
+  equipoId: string;
+  usuario?: string;
+  linea?: string;
+  equipo?: string;
+}
 
 export const useAssignments = () => {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchAssignments = async () => {
-      try {
-        setLoading(true);
-        const fetchedAssignments = await api.getAssignments();
-        setAssignments(fetchedAssignments);
-      } catch (err) {
-        setError('Error al cargar las asignaciones');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchAssignments = async () => {
+    try {
+      setLoading(true);
+      const response = await assignmentsAPI.getAssignments();
+      setAssignments(response.data);
+    } catch (err) {
+      setError('Error al cargar las asignaciones');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchAssignments();
   }, []);
 
   const addAssignment = async (assignment: Omit<Assignment, 'id'>) => {
     try {
-      const newAssignment = await api.createAssignment(assignment);
-      setAssignments((prevAssignments) => [...prevAssignments, newAssignment]);
+      await assignmentsAPI.createAssignment(assignment);
+      await fetchAssignments();
     } catch (err) {
       setError('Error al crear la asignación');
       console.error(err);
+      throw err;
     }
   };
 
   const editAssignment = async (assignment: Assignment) => {
     try {
-      const updatedAssignment = await api.updateAssignment(assignment);
-      setAssignments((prevAssignments) =>
-        prevAssignments.map((a) => (a.id === updatedAssignment.id ? updatedAssignment : a))
-      );
+      await assignmentsAPI.updateAssignment(assignment.id.toString(), assignment);
+      await fetchAssignments();
     } catch (err) {
       setError('Error al actualizar la asignación');
       console.error(err);
+      throw err;
     }
   };
 
   const removeAssignment = async (assignmentId: string) => {
     try {
-      await api.deleteAssignment(assignmentId);
-      setAssignments((prevAssignments) => prevAssignments.filter((a) => a.id !== assignmentId));
+      await assignmentsAPI.deleteAssignment(assignmentId);
+      await fetchAssignments();
     } catch (err) {
       setError('Error al eliminar la asignación');
       console.error(err);
+      throw err;
     }
   };
 
-  return { assignments, loading, error, addAssignment, editAssignment, removeAssignment };
+  return { assignments, loading, error, addAssignment, editAssignment, removeAssignment, refetch: fetchAssignments };
 };
