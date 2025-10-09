@@ -6,7 +6,7 @@ import Input from '../components/ui/Input';
 import { useLines, type Line } from '../hooks/useLines';
 
 const LinesView = () => {
-  const { lines, loading, error, addLine, editLine, removeLine, toggleStatus } = useLines();
+  const { lines, error, addLine, editLine, removeLine, toggleStatus } = useLines();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentLine, setCurrentLine] = useState<Line | null>(null);
 

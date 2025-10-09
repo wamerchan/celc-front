@@ -6,7 +6,7 @@ import Input from '../components/ui/Input';
 import { useEquipments, type Equipment } from '../hooks/useEquipments';
 
 const EquipmentsView = () => {
-  const { equipments, loading, error, addEquipment, editEquipment, removeEquipment, repairEquipment } = useEquipments();
+  const { equipments, error, addEquipment, editEquipment, removeEquipment, repairEquipment } = useEquipments();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isRepairModalOpen, setIsRepairModalOpen] = useState(false);
   const [currentEquipment, setCurrentEquipment] = useState<Equipment | null>(null);

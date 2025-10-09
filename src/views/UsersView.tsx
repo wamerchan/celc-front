@@ -7,7 +7,7 @@ import { useUsers } from '../hooks/useUsers';
 import type { User } from '../context/AuthContext';
 
 const UsersView = () => {
-  const { users, loading, error, addUser, editUser, removeUser } = useUsers();
+  const { users, error, addUser, editUser, removeUser } = useUsers();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
 

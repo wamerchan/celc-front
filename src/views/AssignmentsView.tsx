@@ -9,7 +9,7 @@ import { useLines } from '../hooks/useLines';
 import { useEquipments } from '../hooks/useEquipments';
 
 const AssignmentsView = () => {
-  const { assignments, loading, error, addAssignment, editAssignment, removeAssignment } = useAssignments();
+  const { assignments, error, addAssignment, editAssignment, removeAssignment } = useAssignments();
   const { users } = useUsers();
   const { lines } = useLines();
   const { equipments } = useEquipments();

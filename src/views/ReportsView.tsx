@@ -65,11 +65,11 @@ const ReportsView = () => {
     }
   };
 
-  const renderRow = (item: any, index: number) => {
+  const renderRow = (item: any) => {
     switch (filters.type) {
       case 'lineas':
         return (
-          <tr key={index}>
+          <tr key={item.id}>
             <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{item.numero}</td>
             <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{item.estado}</td>
             <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{item.plan}</td>
@@ -78,7 +78,7 @@ const ReportsView = () => {
         );
       case 'equipos':
         return (
-          <tr key={index}>
+          <tr key={item.id}>
             <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{item.modelo}</td>
             <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{item.marca}</td>
             <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{item.estado}</td>
@@ -87,7 +87,7 @@ const ReportsView = () => {
         );
       case 'asignaciones':
         return (
-          <tr key={index}>
+          <tr key={item.id}>
             <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{item.usuario}</td>
             <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{item.linea}</td>
             <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{item.equipo}</td>
@@ -95,7 +95,7 @@ const ReportsView = () => {
           </tr>
         );
       default:
-        return <tr key={index}></tr>;
+        return <tr key={item.id || Math.random()}></tr>;
     }
   };
 

@@ -15,8 +15,15 @@ const LoginView = () => {
     try {
       await login(email, password);
       navigate('/dashboard');
-    } catch (error) {
-      alert('Error en login: ' + (error as Error).message);
+    } catch (error: unknown) {
+      let errorMessage = 'Error desconocido';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'object' && error !== null && 'response' in error) {
+        const axiosError = error as { response?: { data?: { message?: string } } };
+        errorMessage = axiosError.response?.data?.message || 'Error en la respuesta del servidor';
+      }
+      alert('Error en login: ' + errorMessage);
     }
   };
 

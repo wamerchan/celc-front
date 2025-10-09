@@ -1,7 +1,50 @@
 import axios from 'axios';
 
+// Types
+export interface User {
+  id: number;
+  nombre: string;
+  email: string;
+  rol: string;
+  fecha_creacion: string;
+}
+
+export interface Line {
+  id: number;
+  numero: string;
+  estado: string;
+  plan: string;
+  fecha_creacion: string;
+}
+
+export interface Equipment {
+  id: number;
+  modelo: string;
+  marca: string;
+  estado: string;
+  fecha_adquisicion: string;
+}
+
+export interface Assignment {
+  id: number;
+  id_usuario: number;
+  id_equipo: number;
+  id_linea: number;
+  fecha_asignacion: string;
+}
+
+export interface Review {
+  id: number;
+  equipment: string;
+  date: string;
+  result: string;
+  equipoId: string;
+  fecha: string;
+  resultado: string;
+}
+
 // Configure axios defaults
-axios.defaults.baseURL = 'http://localhost:3000/api';
+axios.defaults.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 // Add request interceptor to include token
 axios.interceptors.request.use(
@@ -89,4 +132,11 @@ export const reportsAPI = {
 // Dashboard API
 export const dashboardAPI = {
   getStats: () => axios.get('/dashboard/stats'),
+};
+
+// Metrics API
+export const metricsAPI = {
+  getTotalActiveLines: () => axios.get('/metricas/lineas-activas'),
+  getEquipmentsInRepair: () => axios.get('/metricas/equipos-reparacion'),
+  getUpcomingReviews: () => axios.get('/metricas/revisiones-proximas'),
 };

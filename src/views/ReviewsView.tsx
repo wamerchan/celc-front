@@ -5,10 +5,10 @@ import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import { useReviews } from '../hooks/useReviews';
 import { useEquipments } from '../hooks/useEquipments';
-import { Review } from '../services/api';
+import type { Review } from '../services/api';
 
 const ReviewsView = () => {
-  const { reviews, loading, error, addReview, editReview, removeReview } = useReviews();
+  const { reviews, error, addReview, editReview, removeReview } = useReviews();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentReview, setCurrentReview] = useState<Review | null>(null);
 
@@ -46,7 +46,7 @@ const ReviewsView = () => {
       <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{review.result}</td>
       <td className="px-6 py-4 whitespace-nowrap">
         <Button onClick={() => handleEdit(review)}>Editar</Button>
-        <Button onClick={() => handleDelete(review.id)} className="ml-2 bg-coral">Eliminar</Button>
+        <Button onClick={() => handleDelete(review.id.toString())} className="ml-2 bg-coral">Eliminar</Button>
       </td>
     </tr>
   );
@@ -96,10 +96,23 @@ const ReviewFormModal = ({ isOpen, onClose, onSave, review }: {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // Find the selected equipment to get its ID
+    const selectedEquipment = equipments.find(eq => eq.modelo === formData.equipment);
+    if (!selectedEquipment) {
+      alert('Por favor selecciona un equipo válido');
+      return;
+    }
+
+    const reviewData = {
+      equipoId: selectedEquipment.id.toString(),
+      fecha: formData.date,
+      resultado: formData.result,
+    };
+
     if (review) {
-      onSave({ ...review, ...formData });
+      onSave({ ...review, ...reviewData });
     } else {
-      onSave(formData);
+      onSave(reviewData as Omit<Review, 'id'>);
     }
   };
 
@@ -110,7 +123,7 @@ const ReviewFormModal = ({ isOpen, onClose, onSave, review }: {
           <label htmlFor="equipment">Equipo</label>
           <select id="equipment" name="equipment" value={formData.equipment} onChange={handleChange} className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
             <option value="">Selecciona un equipo</option>
-            {equipments.map(equipment => <option key={equipment.id} value={equipment.model}>{equipment.model}</option>)}
+            {equipments.map(equipment => <option key={equipment.id} value={equipment.modelo}>{equipment.modelo}</option>)}
           </select>
         </div>
         <Input 
