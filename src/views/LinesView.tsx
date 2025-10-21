@@ -6,40 +6,47 @@ import Input from '../components/ui/Input';
 import { useLines, type Line } from '../hooks/useLines';
 
 const LinesView = () => {
+  // Hook para obtener líneas del backend - 20 de octubre de 2025 - WM Developer
   const { lines, error, addLine, editLine, removeLine, toggleStatus } = useLines();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentLine, setCurrentLine] = useState<Line | null>(null);
 
+  // Headers de la tabla de líneas - 20 de octubre de 2025 - WM Developer
   const headers = ['Número', 'Estado', 'Plan', 'Acciones'];
 
+  // Maneja la apertura del modal para editar una línea - 20 de octubre de 2025 - WM Developer
   const handleEdit = (line: Line) => {
     setCurrentLine(line);
     setIsModalOpen(true);
   };
 
+  // Maneja la eliminación de una línea con confirmación - 20 de octubre de 2025 - WM Developer
   const handleDelete = async (lineId: string) => {
     if (window.confirm('¿Estás seguro de que quieres eliminar esta línea?')) {
       try {
         await removeLine(lineId);
-      } catch (err) {
+      } catch {
         alert('Error al eliminar línea');
       }
     }
   };
 
+  // Abre el modal para crear una nueva línea - 20 de octubre de 2025 - WM Developer
   const handleCreate = () => {
     setCurrentLine(null);
     setIsModalOpen(true);
   };
 
+  // Maneja el cambio de estado de una línea (Activa/Inactiva) - 20 de octubre de 2025 - WM Developer
   const handleToggleStatus = async (lineId: string) => {
     try {
       await toggleStatus(lineId);
-    } catch (err) {
+    } catch {
       alert('Error al cambiar estado');
     }
   };
 
+  // Guarda los cambios de una línea (crear o editar) - 20 de octubre de 2025 - WM Developer
   const handleSave = async (line: Omit<Line, 'id'> | Line) => {
     try {
       if ('id' in line) {
@@ -48,7 +55,7 @@ const LinesView = () => {
         await addLine(line as Omit<Line, 'id'>);
       }
       setIsModalOpen(false);
-    } catch (err) {
+    } catch {
       alert('Error al guardar línea');
     }
   };
@@ -58,22 +65,45 @@ const LinesView = () => {
       <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{line.numero}</td>
       <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">
         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-          line.estado === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+          line.estado === 'Activa' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
         }`}>
           {line.estado}
         </span>
       </td>
       <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{line.plan}</td>
-      <td className="px-6 py-4 whitespace-nowrap">
-        <Button
+      <td className="px-6 py-4 whitespace-nowrap flex gap-2">
+        <button
           onClick={() => handleToggleStatus(line.id.toString())}
-          variant={line.estado === 'Active' ? 'danger' : 'primary'}
-          className="mr-2"
+          className={`inline-flex items-center justify-center w-8 h-8 rounded-md transition-colors text-white ${
+            line.estado === 'Activa' ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-green-600 hover:bg-green-700'
+          }`}
+          title={line.estado === 'Activa' ? 'Suspender' : 'Activar'}
         >
-          {line.estado === 'Active' ? 'Suspender' : 'Activar'}
-        </Button>
-        <Button onClick={() => handleEdit(line)} className="mr-2">Editar</Button>
-        <Button onClick={() => handleDelete(line.id.toString())} variant="danger">Eliminar</Button>
+          {/* Icono de toggle para activar/suspender - 20 de octubre de 2025 - WM Developer */}
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12M8 11h12m-3-8H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V4a2 2 0 00-2-2z" />
+          </svg>
+        </button>
+        <button
+          onClick={() => handleEdit(line)}
+          className="inline-flex items-center justify-center w-8 h-8 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
+          title="Editar"
+        >
+          {/* Icono de lápiz para editar - 20 de octubre de 2025 - WM Developer */}
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+        </button>
+        <button
+          onClick={() => handleDelete(line.id.toString())}
+          className="inline-flex items-center justify-center w-8 h-8 bg-red-600 hover:bg-red-700 text-white rounded-md transition-colors"
+          title="Eliminar"
+        >
+          {/* Icono de basura para eliminar - 20 de octubre de 2025 - WM Developer */}
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        </button>
       </td>
     </tr>
   );
