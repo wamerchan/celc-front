@@ -8,7 +8,12 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, isInitialized } = useAuth();
+
+  // Esperar a que se inicialice la autenticación
+  if (!isInitialized) {
+    return <div className="flex items-center justify-center min-h-screen">Cargando...</div>;
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;

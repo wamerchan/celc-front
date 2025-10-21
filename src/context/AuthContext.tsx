@@ -5,9 +5,11 @@ import { authAPI } from '../services/api';
 // Define the shape of the user object
 export interface User {
   id: string;
-  nombre: string;
+  nombres: string;
+  apellidos?: string;
   email: string;
   rol: string;
+  nombre?: string; // Para compatibilidad con código anterior
 }
 
 // Define the shape of the context
@@ -16,6 +18,7 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   loading: boolean;
+  isInitialized: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
 }
@@ -28,6 +31,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const [isInitialized, setIsInitialized] = useState<boolean>(false);
 
   // Load token and user from localStorage on mount
   useEffect(() => {
@@ -36,7 +40,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (storedToken && storedUser) {
       setToken(storedToken);
       setUser(JSON.parse(storedUser));
+      // Restaurar el header de autorización
+      axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
     }
+    setIsInitialized(true);
   }, []);
 
   const login = async (email: string, password: string) => {
@@ -65,7 +72,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const isAuthenticated = !!token;
 
   return (
-    <AuthContext.Provider value={{ token, user, isAuthenticated, loading, login, logout }}>
+    <AuthContext.Provider value={{ token, user, isAuthenticated, loading, isInitialized, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

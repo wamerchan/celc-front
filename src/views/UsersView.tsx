@@ -48,12 +48,30 @@ const UsersView = () => {
 
   const renderRow = (user: User) => (
     <tr key={user.id}>
-      <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{user.nombre}</td>
+      <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">
+        {user.nombres} {user.apellidos || ''}
+      </td>
       <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{user.email}</td>
       <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{user.rol}</td>
-      <td className="px-6 py-4 whitespace-nowrap">
-        <Button onClick={() => handleEdit(user)} className="mr-2">Editar</Button>
-        <Button onClick={() => handleDelete(user.id.toString())} variant="danger">Eliminar</Button>
+      <td className="px-6 py-4 whitespace-nowrap flex gap-2">
+        <button
+          onClick={() => handleEdit(user)}
+          className="inline-flex items-center justify-center w-8 h-8 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
+          title="Editar"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+        </button>
+        <button
+          onClick={() => handleDelete(user.id.toString())}
+          className="inline-flex items-center justify-center w-8 h-8 bg-red-600 hover:bg-red-700 text-white rounded-md transition-colors"
+          title="Eliminar"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        </button>
       </td>
     </tr>
   );
@@ -96,7 +114,8 @@ const UserFormModal = ({
   user: User | null;
 }) => {
   const [formData, setFormData] = useState({
-    nombre: user?.nombre || '',
+    nombres: user?.nombres || '',
+    apellidos: user?.apellidos || '',
     email: user?.email || '',
     rol: user?.rol || '',
   });
@@ -110,7 +129,7 @@ const UserFormModal = ({
     if (user) {
       onSave({ ...user, ...formData });
     } else {
-      onSave(formData);
+      onSave(formData as Omit<User, 'id'>);
     }
   };
 
@@ -118,12 +137,21 @@ const UserFormModal = ({
     <Modal isOpen={isOpen} onClose={onClose} title={user ? 'Editar Usuario' : 'Crear Usuario'}>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <Input
-          id="nombre"
-          name="nombre"
-          label="Nombre"
-          placeholder="John Doe"
+          id="nombres"
+          name="nombres"
+          label="Nombres"
+          placeholder="Carlos"
           required
-          value={formData.nombre}
+          value={formData.nombres}
+          onChange={handleChange}
+        />
+        <Input
+          id="apellidos"
+          name="apellidos"
+          label="Apellidos"
+          placeholder="Gómez"
+          required
+          value={formData.apellidos}
           onChange={handleChange}
         />
         <Input
