@@ -1,8 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import Button from '../components/ui/Button';
-import Input from '../components/ui/Input';
 
 const LoginView = () => {
   const [email, setEmail] = useState('');
@@ -10,20 +8,22 @@ const LoginView = () => {
   const { login, loading } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent | React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+    }
+    
+    if (!email || !password) {
+      alert('Por favor ingresa email y contraseña');
+      return;
+    }
+
     try {
       await login(email, password);
       navigate('/dashboard');
-    } catch (error: unknown) {
-      let errorMessage = 'Error desconocido';
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      } else if (typeof error === 'object' && error !== null && 'response' in error) {
-        const axiosError = error as { response?: { data?: { message?: string } } };
-        errorMessage = axiosError.response?.data?.message || 'Error en la respuesta del servidor';
-      }
-      alert('Error en login: ' + errorMessage);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Error desconocido';
+      alert('Error: ' + message);
     }
   };
 
@@ -34,39 +34,45 @@ const LoginView = () => {
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
             Iniciar Sesión en CELC
           </h2>
+          <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+            Prueba: carlos.gómez0@example.com / 123456
+          </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="rounded-md shadow-sm -space-y-px">
+          <div className="space-y-4">
             <div>
-              <Input
-                id="email"
-                name="email"
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Correo Electrónico
+              </label>
+              <input
                 type="email"
-                label="Correo Electrónico"
-                placeholder="admin@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="admin@example.com"
               />
             </div>
-            <div className="mt-4">
-              <Input
-                id="password"
-                name="password"
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Contraseña
+              </label>
+              <input
                 type="password"
-                label="Contraseña"
-                placeholder="Contraseña"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Contraseña"
               />
             </div>
           </div>
-          <div>
-            <Button type="submit" isLoading={loading} className="w-full">
-              Iniciar Sesión
-            </Button>
-          </div>
+          <button
+            type="submit"
+            disabled={loading}
+            onClick={(e) => handleSubmit(e)}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          >
+            {loading ? 'Cargando...' : 'Iniciar Sesión'}
+          </button>
         </form>
       </div>
     </div>

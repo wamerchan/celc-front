@@ -44,7 +44,8 @@ export interface Review {
 }
 
 // Configure axios defaults
-axios.defaults.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+axios.defaults.baseURL = baseURL;
 
 // Add request interceptor to include token
 axios.interceptors.request.use(
@@ -55,9 +56,12 @@ axios.interceptors.request.use(
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
+);
+
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => Promise.reject(error)
 );
 
 // Auth API
