@@ -131,7 +131,7 @@ const LoginView = () => {
         {/* Footer discreto */}
         <div className="text-center mt-6">
           <p className="text-sm text-white/80">
-            Sistema de Gestión CELC © 2025
+            Sistema de Gestión CELC - ADSO 3070123 <br />© 2025
           </p>
         </div>
       </div>
