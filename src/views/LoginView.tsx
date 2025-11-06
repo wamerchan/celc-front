@@ -122,7 +122,7 @@ const LoginView = () => {
             {/* Información de prueba */}
             <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
               <p className="text-xs text-blue-800 font-medium mb-1">Credenciales de prueba:</p>
-              <p className="text-xs text-blue-700">Email: carlos.gómez0@example.com</p>
+              <p className="text-xs text-blue-700">Email: carlos.gomez0@example.com</p>
               <p className="text-xs text-blue-700">Contraseña: 123456</p>
             </div>
           </div>
