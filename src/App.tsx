@@ -12,7 +12,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   return (
-    <div className="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 min-h-screen">
+    <div className="min-h-screen bg-background text-foreground fade-in">
       <Routes>
         <Route path="/login" element={<LoginView />} />
         <Route

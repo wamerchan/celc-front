@@ -68,6 +68,8 @@ axios.interceptors.response.use(
 export const authAPI = {
   login: (email: string, password: string) =>
     axios.post('/auth/login', { email, password }),
+  verify: () =>
+    axios.get('/auth/verify'),
 };
 
 // Users API

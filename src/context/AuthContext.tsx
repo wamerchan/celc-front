@@ -21,6 +21,7 @@ interface AuthContextType {
   isInitialized: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
+  checkAuth: () => Promise<void>;
 }
 
 // Create the context with a default value
@@ -35,15 +36,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Load token and user from localStorage on mount
   useEffect(() => {
-    const storedToken = localStorage.getItem('token');
-    const storedUser = localStorage.getItem('user');
-    if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
-      // Restaurar el header de autorización
-      axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
-    }
-    setIsInitialized(true);
+    checkAuth();
   }, []);
 
   const login = async (email: string, password: string) => {
@@ -69,10 +62,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     delete axios.defaults.headers.common['Authorization'];
   };
 
+  const checkAuth = async () => {
+    const storedToken = localStorage.getItem('token');
+    if (storedToken) {
+      try {
+        // Validar token con el backend
+        const response = await authAPI.verify();
+        if (response.data.valid) {
+          setToken(storedToken);
+          setUser(response.data.user);
+          axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
+        } else {
+          logout();
+        }
+      } catch (error) {
+        console.error('Auth check error:', error);
+        logout();
+      }
+    }
+    setIsInitialized(true);
+  };
+
   const isAuthenticated = !!token;
 
   return (
-    <AuthContext.Provider value={{ token, user, isAuthenticated, loading, isInitialized, login, logout }}>
+    <AuthContext.Provider value={{ token, user, isAuthenticated, loading, isInitialized, login, logout, checkAuth }}>
       {children}
     </AuthContext.Provider>
   );
