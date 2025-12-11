@@ -1,0 +1,181 @@
+import { useState } from 'react';
+import DataTable from '../components/shared/DataTable';
+import Modal from '../components/shared/Modal';
+import Button from '../components/ui/Button';
+import Input from '../components/ui/Input';
+import { useUsers } from '../hooks/useUsers';
+import type { User } from '../context/AuthContext';
+
+const UsersView = () => {
+  const { users, error, addUser, editUser, removeUser } = useUsers();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+
+  const headers = ['Nombre', 'Email', 'Rol', 'Acciones'];
+
+  const handleEdit = (user: User) => {
+    setCurrentUser(user);
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = async (userId: string) => {
+    if (window.confirm('¿Estás seguro de que quieres eliminar este usuario?')) {
+      try {
+        await removeUser(userId);
+      } catch (err) {
+        alert('Error al eliminar usuario');
+      }
+    }
+  };
+
+  const handleCreate = () => {
+    setCurrentUser(null);
+    setIsModalOpen(true);
+  };
+
+  const handleSave = async (user: Omit<User, 'id'> | User) => {
+    try {
+      if ('id' in user) {
+        await editUser(user as User);
+      } else {
+        await addUser(user as Omit<User, 'id'>);
+      }
+      setIsModalOpen(false);
+    } catch (err) {
+      alert('Error al guardar usuario');
+    }
+  };
+
+  const renderRow = (user: User) => (
+    <tr key={user.id}>
+      <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">
+        {user.nombres} {user.apellidos || ''}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{user.email}</td>
+      <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{user.rol}</td>
+      <td className="px-6 py-4 whitespace-nowrap flex gap-2">
+        <button
+          onClick={() => handleEdit(user)}
+          className="inline-flex items-center justify-center w-8 h-8 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
+          title="Editar"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+        </button>
+        <button
+          onClick={() => handleDelete(user.id.toString())}
+          className="inline-flex items-center justify-center w-8 h-8 bg-red-600 hover:bg-red-700 text-white rounded-md transition-colors"
+          title="Eliminar"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        </button>
+      </td>
+    </tr>
+  );
+
+  return (
+    <div className="p-4">
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold dark:text-white">Gestión de Usuarios</h1>
+        <Button onClick={handleCreate}>Crear Usuario</Button>
+      </div>
+      {error && <p className="text-red-500 mb-4">{error}</p>}
+      <DataTable
+        headers={headers}
+        data={users}
+        renderRow={renderRow}
+        searchable={true}
+        searchPlaceholder="Buscar usuarios..."
+      />
+      {isModalOpen && (
+        <UserFormModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSave={handleSave}
+          user={currentUser}
+        />
+      )}
+    </div>
+  );
+};
+
+const UserFormModal = ({
+  isOpen,
+  onClose,
+  onSave,
+  user
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (user: Omit<User, 'id'> | User) => void;
+  user: User | null;
+}) => {
+  const [formData, setFormData] = useState({
+    nombres: user?.nombres || '',
+    apellidos: user?.apellidos || '',
+    email: user?.email || '',
+    rol: user?.rol || '',
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (user) {
+      onSave({ ...user, ...formData });
+    } else {
+      onSave(formData as Omit<User, 'id'>);
+    }
+  };
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title={user ? 'Editar Usuario' : 'Crear Usuario'}>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <Input
+          id="nombres"
+          name="nombres"
+          label="Nombres"
+          placeholder="Carlos"
+          required
+          value={formData.nombres}
+          onChange={handleChange}
+        />
+        <Input
+          id="apellidos"
+          name="apellidos"
+          label="Apellidos"
+          placeholder="Gómez"
+          required
+          value={formData.apellidos}
+          onChange={handleChange}
+        />
+        <Input
+          id="email"
+          name="email"
+          label="Email"
+          placeholder="john@example.com"
+          required
+          value={formData.email}
+          onChange={handleChange}
+        />
+        <Input
+          id="rol"
+          name="rol"
+          label="Rol"
+          placeholder="Administrador"
+          required
+          value={formData.rol}
+          onChange={handleChange}
+        />
+        <Button type="submit">Guardar</Button>
+      </form>
+    </Modal>
+  );
+};
+
+export default UsersView;
