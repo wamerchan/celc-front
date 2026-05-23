@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import DataTable from '../shared/components/ui/DataTable';
-import Button from '../shared/components/ui/Button';
-import Input from '../shared/components/ui/Input';
-import Select from '../shared/components/ui/Select';
+import { DataTable } from '../shared/components/ui/DataTable';
+import { Button } from '../shared/components/ui/Button';
+import { Input } from '../shared/components/ui/Input';
+import { Select } from '../shared/components/ui/Select';
 import { reportesEndpoints } from '../shared/api/endpoints';
 
 const ReportsView = () => {
@@ -52,66 +52,100 @@ const ReportsView = () => {
     }
   };
 
-  const getHeaders = () => {
+  const getColumns = () => {
     switch (filters.type) {
       case 'lineas':
-        return ['Número', 'Estado', 'Plan', 'Usuario'];
+        return [
+          { key: 'numero', header: 'Número', sortable: true },
+          {
+            key: 'estado',
+            header: 'Estado',
+            sortable: true,
+            render: (item: any) => (
+              <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                item.estado === 'Activa' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
+              }`}>
+                {item.estado}
+              </span>
+            )
+          },
+          { key: 'plan', header: 'Plan', sortable: true },
+          { key: 'usuario', header: 'Usuario Relacionado', sortable: true },
+        ];
       case 'equipos':
-        return ['Modelo', 'Marca', 'Estado', 'Fecha Reparación'];
+        return [
+          { key: 'modelo', header: 'Modelo', sortable: true },
+          { key: 'marca', header: 'Marca', sortable: true },
+          {
+            key: 'estado',
+            header: 'Estado',
+            sortable: true,
+            render: (item: any) => {
+              const stateColors: Record<string, string> = {
+                Disponible: 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20',
+                Asignado: 'bg-blue-500/10 text-blue-500 border border-blue-500/20',
+                En_Mantenimiento: 'bg-amber-500/10 text-amber-500 border border-amber-500/20',
+                Baja: 'bg-rose-500/10 text-rose-500 border border-rose-500/20',
+              };
+              return (
+                <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${stateColors[item.estado] || 'bg-slate-500/10 text-slate-500'}`}>
+                  {item.estado}
+                </span>
+              );
+            }
+          },
+          {
+            key: 'fechaReparacion',
+            header: 'Fecha Última Reparación',
+            sortable: true,
+            render: (item: any) => {
+              if (!item.fechaReparacion) return '-';
+              const dateObj = new Date(item.fechaReparacion);
+              return isNaN(dateObj.getTime()) ? item.fechaReparacion : dateObj.toLocaleDateString();
+            }
+          },
+        ];
       case 'asignaciones':
-        return ['Usuario', 'Línea', 'Equipo', 'Fecha Asignación'];
+        return [
+          { key: 'usuario', header: 'Usuario', sortable: true },
+          { key: 'linea', header: 'Línea de Teléfono', sortable: true },
+          { key: 'equipo', header: 'Equipo Asignado', sortable: true },
+          {
+            key: 'fechaAsignacion',
+            header: 'Fecha de Asignación',
+            sortable: true,
+            render: (item: any) => {
+              if (!item.fechaAsignacion) return '-';
+              const dateObj = new Date(item.fechaAsignacion);
+              return isNaN(dateObj.getTime()) ? item.fechaAsignacion : dateObj.toLocaleDateString();
+            }
+          },
+        ];
       default:
         return [];
     }
   };
 
-  const renderRow = (item: any) => {
-    switch (filters.type) {
-      case 'lineas':
-        return (
-          <tr key={item.id}>
-            <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{item.numero}</td>
-            <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{item.estado}</td>
-            <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{item.plan}</td>
-            <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{item.usuario}</td>
-          </tr>
-        );
-      case 'equipos':
-        return (
-          <tr key={item.id}>
-            <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{item.modelo}</td>
-            <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{item.marca}</td>
-            <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{item.estado}</td>
-            <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{item.fechaReparacion}</td>
-          </tr>
-        );
-      case 'asignaciones':
-        return (
-          <tr key={item.id}>
-            <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{item.usuario}</td>
-            <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{item.linea}</td>
-            <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{item.equipo}</td>
-            <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{item.fechaAsignacion}</td>
-          </tr>
-        );
-      default:
-        return <tr key={item.id || Math.random()}></tr>;
-    }
-  };
-
   const reportTypeOptions = [
-    { value: 'lineas', label: 'Líneas' },
-    { value: 'equipos', label: 'Equipos' },
-    { value: 'asignaciones', label: 'Asignaciones' },
+    { value: 'lineas', label: 'Reporte de Líneas' },
+    { value: 'equipos', label: 'Reporte de Equipos' },
+    { value: 'asignaciones', label: 'Reporte de Asignaciones' },
   ];
 
   return (
-    <div className="p-4">
-      <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">Reportes</h1>
+    <div className="space-y-6 animate-slide-up text-left">
+      <div>
+        <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-[var(--color-text)] to-[var(--color-text-muted)] bg-clip-text text-transparent">
+          Reportes de Auditoría
+        </h1>
+        <p className="text-sm text-[var(--color-text-muted)] mt-1">
+          Genera y exporta reportes detallados sobre el uso de líneas, inventario de equipos y asignaciones activas.
+        </p>
+      </div>
 
-      <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 mb-6">
-        <h2 className="text-xl font-semibold mb-4">Filtros</h2>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="rounded-xl border border-[var(--color-border)]/80 bg-[var(--color-surface)]/60 backdrop-blur-md shadow-lg p-6">
+        <h2 className="text-lg font-semibold mb-4 text-[var(--color-text)]">Parámetros de Búsqueda</h2>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
           <Select
             id="type"
             name="type"
@@ -123,7 +157,7 @@ const ReportsView = () => {
           <Input
             id="startDate"
             name="startDate"
-            label="Fecha Inicio"
+            label="Fecha de Inicio"
             type="date"
             value={filters.startDate}
             onChange={handleFilterChange}
@@ -131,29 +165,50 @@ const ReportsView = () => {
           <Input
             id="endDate"
             name="endDate"
-            label="Fecha Fin"
+            label="Fecha de Fin"
             type="date"
             value={filters.endDate}
             onChange={handleFilterChange}
           />
-          <div className="flex items-end">
-            <Button onClick={handleGenerateReport} isLoading={loading}>
+          <div className="flex">
+            <Button onClick={handleGenerateReport} loading={loading} fullWidth>
               Generar Reporte
             </Button>
           </div>
         </div>
       </div>
 
-      {error && <p className="text-red-500 mb-4">{error}</p>}
+      {error && (
+        <div className="p-4 bg-rose-500/10 border border-rose-500/20 text-rose-500 rounded-xl text-sm">
+          {error}
+        </div>
+      )}
 
-      {reportData.length > 0 && (
-        <DataTable
-          headers={getHeaders()}
-          data={reportData}
-          renderRow={renderRow}
-          searchable={true}
-          searchPlaceholder="Buscar en reporte..."
-        />
+      {reportData.length > 0 ? (
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <span className="text-xs text-[var(--color-text-muted)] font-medium">
+              Vista previa del reporte generado
+            </span>
+          </div>
+          <DataTable
+            columns={getColumns() as any[]}
+            data={reportData as any[]}
+            rowKey={(item: any) => item.id || Math.random()}
+            searchable={true}
+            searchPlaceholder="Buscar en reporte..."
+          />
+        </div>
+      ) : (
+        !loading && (
+          <div className="flex flex-col items-center justify-center py-16 text-center border border-[var(--color-border)]/60 rounded-xl bg-[var(--color-surface)]/30">
+            <svg className="w-12 h-12 text-[var(--color-text-subtle)] mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <p className="font-semibold text-[var(--color-text)]">Ningún reporte generado</p>
+            <p className="text-xs text-[var(--color-text-muted)] mt-1">Selecciona los filtros y haz clic en Generar Reporte.</p>
+          </div>
+        )
       )}
     </div>
   );

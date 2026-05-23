@@ -48,8 +48,8 @@ export const useUsers = () => {
       await usuariosEndpoints.update(user.id, {
         nombres: user.nombres,
         apellidos: user.apellidos || '',
-        email: user.email,
-        rol: user.rol,
+        correoElectronico: user.email,
+        rolId: user.rol === 'Administrador' ? 1 : 2,
       });
       await fetchUsers(); // Refresh list
     } catch (err) {

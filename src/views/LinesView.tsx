@@ -1,26 +1,53 @@
 import { useState } from 'react';
-import DataTable from '../shared/components/ui/DataTable';
-import Modal from '../shared/components/ui/Modal';
-import Button from '../shared/components/ui/Button';
-import Input from '../shared/components/ui/Input';
+import { DataTable } from '../shared/components/ui/DataTable';
+import { Modal } from '../shared/components/ui/Modal';
+import { Button } from '../shared/components/ui/Button';
+import { Input } from '../shared/components/ui/Input';
 import { useLines, type Line } from '../hooks/useLines';
+import { HiOutlinePencilSquare, HiOutlineTrash, HiOutlineArrowPath } from 'react-icons/hi2';
 
 const LinesView = () => {
-  // Hook para obtener líneas del backend - 20 de octubre de 2025 - WM Developer
   const { lines, error, addLine, editLine, removeLine, toggleStatus } = useLines();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentLine, setCurrentLine] = useState<Line | null>(null);
 
-  // Headers de la tabla de líneas - 20 de octubre de 2025 - WM Developer
-  const headers = ['Número', 'Estado', 'Plan', 'Acciones'];
+  const columns = [
+    {
+      key: 'numero',
+      header: 'Número',
+      sortable: true,
+    },
+    {
+      key: 'estado',
+      header: 'Estado',
+      sortable: true,
+      render: (line: Line) => {
+        const active = line.estado === 'Activa';
+        return (
+          <span
+            className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
+              active
+                ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
+                : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
+            }`}
+          >
+            {line.estado}
+          </span>
+        );
+      },
+    },
+    {
+      key: 'plan',
+      header: 'Plan de Datos',
+      sortable: true,
+    },
+  ];
 
-  // Maneja la apertura del modal para editar una línea - 20 de octubre de 2025 - WM Developer
   const handleEdit = (line: Line) => {
     setCurrentLine(line);
     setIsModalOpen(true);
   };
 
-  // Maneja la eliminación de una línea con confirmación - 20 de octubre de 2025 - WM Developer
   const handleDelete = async (lineId: string) => {
     if (window.confirm('¿Estás seguro de que quieres eliminar esta línea?')) {
       try {
@@ -31,13 +58,11 @@ const LinesView = () => {
     }
   };
 
-  // Abre el modal para crear una nueva línea - 20 de octubre de 2025 - WM Developer
   const handleCreate = () => {
     setCurrentLine(null);
     setIsModalOpen(true);
   };
 
-  // Maneja el cambio de estado de una línea (Activa/Inactiva) - 20 de octubre de 2025 - WM Developer
   const handleToggleStatus = async (lineId: string) => {
     try {
       await toggleStatus(lineId);
@@ -46,7 +71,6 @@ const LinesView = () => {
     }
   };
 
-  // Guarda los cambios de una línea (crear o editar) - 20 de octubre de 2025 - WM Developer
   const handleSave = async (line: Omit<Line, 'id'> | Line) => {
     try {
       if ('id' in line) {
@@ -60,68 +84,63 @@ const LinesView = () => {
     }
   };
 
-  const renderRow = (line: Line) => (
-    <tr key={line.id} className="hover:bg-muted/30 transition-colors group">
-      <td className="px-6 py-4 whitespace-nowrap text-foreground">{line.numero}</td>
-      <td className="px-6 py-4 whitespace-nowrap text-foreground">
-        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-          line.estado === 'Activa' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-        }`}>
-          {line.estado}
-        </span>
-      </td>
-      <td className="px-6 py-4 whitespace-nowrap text-foreground">{line.plan}</td>
-      <td className="px-6 py-4 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
-        <button
-          onClick={() => handleToggleStatus(line.id.toString())}
-          className={`inline-flex items-center justify-center w-8 h-8 rounded-md transition-colors text-white ${
-            line.estado === 'Activa' ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-green-600 hover:bg-green-700'
-          }`}
-          title={line.estado === 'Activa' ? 'Suspender' : 'Activar'}
-        >
-          {/* Icono de toggle para activar/suspender - 20 de octubre de 2025 - WM Developer */}
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12M8 11h12m-3-8H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V4a2 2 0 00-2-2z" />
-          </svg>
-        </button>
-        <button
-          onClick={() => handleEdit(line)}
-          className="inline-flex items-center justify-center w-8 h-8 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
-          title="Editar"
-        >
-          {/* Icono de lápiz para editar - 20 de octubre de 2025 - WM Developer */}
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-          </svg>
-        </button>
-        <button
-          onClick={() => handleDelete(line.id.toString())}
-          className="inline-flex items-center justify-center w-8 h-8 bg-red-600 hover:bg-red-700 text-white rounded-md transition-colors"
-          title="Eliminar"
-        >
-          {/* Icono de basura para eliminar - 20 de octubre de 2025 - WM Developer */}
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-          </svg>
-        </button>
-      </td>
-    </tr>
+  const renderActions = (line: Line) => (
+    <div className="flex items-center gap-2">
+      <Button
+        variant="secondary"
+        size="sm"
+        onClick={() => handleToggleStatus(line.id.toString())}
+        title={line.estado === 'Activa' ? 'Suspender Línea' : 'Activar Línea'}
+        icon={<HiOutlineArrowPath className={`w-4 h-4 ${line.estado === 'Activa' ? 'text-amber-500' : 'text-emerald-500'}`} />}
+      />
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => handleEdit(line)}
+        title="Editar"
+        icon={<HiOutlinePencilSquare className="w-4 h-4 text-emerald-500" />}
+      />
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => handleDelete(line.id.toString())}
+        title="Eliminar"
+        icon={<HiOutlineTrash className="w-4 h-4 text-rose-500" />}
+      />
+    </div>
   );
 
   return (
-    <div className="p-4">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold dark:text-white">Gestión de Líneas</h1>
-        <Button onClick={handleCreate}>Crear Línea</Button>
+    <div className="space-y-6 animate-slide-up text-left">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-[var(--color-text)] to-[var(--color-text-muted)] bg-clip-text text-transparent">
+            Gestión de Líneas
+          </h1>
+          <p className="text-sm text-[var(--color-text-muted)] mt-1">
+            Administra las líneas de comunicación telefónica y sus planes de datos activos.
+          </p>
+        </div>
+        <Button onClick={handleCreate} variant="primary">
+          Crear Línea
+        </Button>
       </div>
-      {error && <p className="text-red-500 mb-4">{error}</p>}
+
+      {error && (
+        <div className="p-4 bg-rose-500/10 border border-rose-500/20 text-rose-500 rounded-xl text-sm">
+          {error}
+        </div>
+      )}
+
       <DataTable
-        headers={headers}
-        data={lines}
-        renderRow={renderRow}
+        columns={columns}
+        data={lines as any[]}
+        actions={renderActions as any}
+        rowKey={(line: any) => line.id}
         searchable={true}
         searchPlaceholder="Buscar líneas..."
       />
+
       {isModalOpen && (
         <LineFormModal
           isOpen={isModalOpen}
@@ -147,11 +166,11 @@ const LineFormModal = ({
 }) => {
   const [formData, setFormData] = useState({
     numero: line?.numero || '',
-    estado: line?.estado || 'Active',
+    estado: line?.estado || 'Activa',
     plan: line?.plan || '',
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
@@ -160,41 +179,56 @@ const LineFormModal = ({
     if (line) {
       onSave({ ...line, ...formData });
     } else {
-      onSave(formData);
+      onSave(formData as Omit<Line, 'id'>);
     }
   };
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={line ? 'Editar Línea' : 'Crear Línea'}>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <form onSubmit={handleSubmit} className="space-y-5 text-left">
         <Input
           id="numero"
           name="numero"
-          label="Número"
-          placeholder="123456789"
+          label="Número de Teléfono"
+          placeholder="Ej. +573001234567"
           required
           value={formData.numero}
           onChange={handleChange}
         />
         <Input
-          id="estado"
-          name="estado"
-          label="Estado"
-          placeholder="Active"
-          required
-          value={formData.estado}
-          onChange={handleChange}
-        />
-        <Input
           id="plan"
           name="plan"
-          label="Plan"
-          placeholder="Basic"
+          label="Plan de Datos"
+          placeholder="Ej. Plan Ilimitado 5G"
           required
           value={formData.plan}
           onChange={handleChange}
         />
-        <Button type="submit">Guardar</Button>
+        <div className="flex flex-col gap-2">
+          <label htmlFor="estado" className="text-sm font-semibold text-[var(--color-text)]">
+            Estado de la Línea
+          </label>
+          <select
+            id="estado"
+            name="estado"
+            value={formData.estado}
+            onChange={handleChange}
+            className="w-full px-4 py-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] shadow-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-sm"
+          >
+            <option value="Activa">Activa</option>
+            <option value="Inactiva">Inactiva</option>
+            <option value="Suspendida">Suspendida</option>
+          </select>
+        </div>
+
+        <div className="flex justify-end gap-3 pt-2">
+          <Button variant="ghost" type="button" onClick={onClose}>
+            Cancelar
+          </Button>
+          <Button variant="primary" type="submit">
+            {line ? 'Guardar Cambios' : 'Crear'}
+          </Button>
+        </div>
       </form>
     </Modal>
   );

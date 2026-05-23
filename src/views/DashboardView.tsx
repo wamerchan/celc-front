@@ -4,7 +4,6 @@ import { metricasEndpoints } from '../shared/api/endpoints';
 import { useUIStore } from '../store/useUIStore';
 import { HiOutlinePhone, HiOutlineCheckCircle, HiOutlineWrenchScrewdriver, HiOutlineClock } from 'react-icons/hi2';
 import type { DashboardMetrics } from '../shared/types/api.types';
-import { Spinner } from '../shared/components/ui/Spinner';
 
 const DashboardView = () => {
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
@@ -34,8 +33,33 @@ const DashboardView = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Spinner size="lg" />
+      <div className="space-y-8 animate-pulse text-left">
+        <div className="flex flex-col gap-1">
+          <div className="h-8 w-64 bg-[var(--color-surface-2)]/60 rounded-lg shimmer-bg" />
+          <div className="h-4 w-96 bg-[var(--color-surface-2)]/60 rounded-lg mt-2 shimmer-bg" />
+        </div>
+
+        {/* Cards Skeleton */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="p-5 rounded-2xl border border-[var(--color-border)]/80 bg-[var(--color-surface)]/60 flex items-center">
+              <div className="p-3.5 rounded-xl bg-[var(--color-surface-2)]/80 shrink-0 w-12 h-12 shimmer-bg" />
+              <div className="ml-4 flex-1 space-y-2">
+                <div className="h-3 w-20 bg-[var(--color-surface-2)] rounded shimmer-bg" />
+                <div className="h-6 w-12 bg-[var(--color-surface-2)] rounded shimmer-bg" />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Charts Skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-[348px] p-6 rounded-2xl border border-[var(--color-border)]/80 bg-[var(--color-surface)]/60 flex items-center justify-center">
+              <div className="w-full h-full rounded-xl bg-[var(--color-surface-2)]/50 shimmer-bg" />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -57,12 +81,12 @@ const DashboardView = () => {
   const tooltipBorder = isDark ? '#1e293b' : '#e2e8f0';
   const tooltipText = isDark ? '#f8fafc' : '#0f172a';
 
-  const chartColors = ['#10b981', '#06b6d4', '#6366f1', '#f59e0b', '#3b82f6', '#ec4899'];
+  const chartColors = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
 
   const optionChart1 = {
     backgroundColor: 'transparent',
     title: { 
-      text: 'Estado de Equipos', 
+      text: 'Distribución de Equipos', 
       left: 'center',
       textStyle: { color: labelColor, fontFamily: 'Inter, sans-serif', fontSize: 15, fontWeight: 'bold' }
     },
@@ -78,6 +102,7 @@ const DashboardView = () => {
       textStyle: { color: textColor }
     },
     series: [{
+      name: 'Equipos',
       type: 'pie',
       radius: ['45%', '70%'],
       avoidLabelOverlap: false,
@@ -114,6 +139,7 @@ const DashboardView = () => {
       textStyle: { color: textColor }
     },
     series: [{
+      name: 'Líneas',
       type: 'pie',
       radius: '60%',
       itemStyle: { 
@@ -132,7 +158,7 @@ const DashboardView = () => {
   const optionChart3 = {
     backgroundColor: 'transparent',
     title: { 
-      text: 'Revisiones por Mes',
+      text: 'Tendencia de Revisiones',
       left: 'left',
       textStyle: { color: labelColor, fontFamily: 'Inter, sans-serif', fontSize: 15, fontWeight: 'bold' }
     },
@@ -157,6 +183,7 @@ const DashboardView = () => {
       splitLine: { lineStyle: { color: borderColor } }
     },
     series: [{
+      name: 'Revisiones',
       data: (metrics?.revisionesPorMes || []).map(d => d.count),
       type: 'line',
       smooth: true,
@@ -205,6 +232,7 @@ const DashboardView = () => {
       axisLabel: { color: textColor }
     },
     series: [{
+      name: 'Cantidad',
       type: 'bar',
       data: (metrics?.topMarcas || []).map(d => d.count),
       itemStyle: { 
@@ -229,8 +257,8 @@ const DashboardView = () => {
   ];
 
   return (
-    <div className="space-y-8 animate-slide-up">
-      <div className="flex flex-col gap-1 text-left">
+    <div className="space-y-8 animate-slide-up text-left">
+      <div className="flex flex-col gap-1">
         <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-[var(--color-text)] to-[var(--color-text-muted)] bg-clip-text text-transparent">
           Dashboard Informativo
         </h1>
@@ -251,7 +279,7 @@ const DashboardView = () => {
               <div className="p-3.5 rounded-xl bg-[var(--color-surface)]/90 shadow-sm shrink-0">
                 <Icon className={`w-6 h-6 ${card.color}`} />
               </div>
-              <div className="ml-4 min-w-0 text-left">
+              <div className="ml-4 min-w-0">
                 <p className="text-xs text-[var(--color-text-muted)] font-semibold uppercase tracking-wider">{card.title}</p>
                 <p className="text-2xl font-extrabold text-[var(--color-text)] mt-1">{card.value}</p>
               </div>

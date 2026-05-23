@@ -1,17 +1,65 @@
 import React, { useState } from 'react';
-import DataTable from '../shared/components/ui/DataTable';
-import Modal from '../shared/components/ui/Modal';
-import Button from '../shared/components/ui/Button';
-import Input from '../shared/components/ui/Input';
+import { DataTable } from '../shared/components/ui/DataTable';
+import { Modal } from '../shared/components/ui/Modal';
+import { Button } from '../shared/components/ui/Button';
+import { Input } from '../shared/components/ui/Input';
 import { useReviews, type Review } from '../hooks/useReviews';
 import { useEquipments } from '../hooks/useEquipments';
+import { HiOutlinePencilSquare, HiOutlineTrash } from 'react-icons/hi2';
 
 const ReviewsView = () => {
   const { reviews, error, addReview, editReview, removeReview } = useReviews();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentReview, setCurrentReview] = useState<Review | null>(null);
 
-  const headers = ['Equipo', 'Fecha', 'Resultado', 'Acciones'];
+  const columns = [
+    {
+      key: 'equipment',
+      header: 'Equipo',
+      sortable: true,
+    },
+    {
+      key: 'fecha',
+      header: 'Fecha Programada',
+      sortable: true,
+      render: (review: Review) => {
+        const rawDate = review.fecha || review.date;
+        if (!rawDate) return '-';
+        // Formatear fecha localmente
+        const dateObj = new Date(rawDate);
+        if (isNaN(dateObj.getTime())) return rawDate;
+        // Evitar desfase de zona horaria al formatear YYYY-MM-DD
+        const utcDate = new Date(dateObj.getTime() + dateObj.getTimezoneOffset() * 60000);
+        return utcDate.toLocaleDateString();
+      },
+    },
+    {
+      key: 'resultado',
+      header: 'Resultado',
+      sortable: true,
+      render: (review: Review) => {
+        const res = review.resultado || review.result || 'Pendiente';
+        const resultColors: Record<string, string> = {
+          Aprobada: 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20',
+          Reparacion_Necesaria: 'bg-amber-500/10 text-amber-500 border border-amber-500/20',
+          Rechazada: 'bg-rose-500/10 text-rose-500 border border-rose-500/20',
+          Pendiente: 'bg-slate-500/10 text-slate-500 border border-slate-500/20',
+        };
+        const colorClass = resultColors[res] || resultColors.Pendiente;
+        const displayLabel: Record<string, string> = {
+          Aprobada: 'Aprobada',
+          Reparacion_Necesaria: 'Reparación Necesaria',
+          Rechazada: 'Rechazada',
+          Pendiente: 'Pendiente',
+        };
+        return (
+          <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${colorClass}`}>
+            {displayLabel[res] || res}
+          </span>
+        );
+      },
+    },
+  ];
 
   const handleEdit = (review: Review) => {
     setCurrentReview(review);
@@ -30,7 +78,7 @@ const ReviewsView = () => {
   };
 
   const handleSave = (review: Omit<Review, 'id'> | Review) => {
-    if ('id' in review) {
+    if (currentReview && 'id' in review) {
       editReview(review as Review);
     } else {
       addReview(review as Omit<Review, 'id'>);
@@ -38,32 +86,56 @@ const ReviewsView = () => {
     setIsModalOpen(false);
   };
 
-  const renderRow = (review: Review) => (
-    <tr key={review.id} className="hover:bg-muted/30 transition-colors group">
-      <td className="px-6 py-4 whitespace-nowrap text-foreground">{typeof review.equipment === "object" ? ((review.equipment as any).modelo || (review.equipment as any).marca) : review.equipment || (review as any).equipoId}</td>
-      <td className="px-6 py-4 whitespace-nowrap text-foreground">{review.fecha || review.date}</td>
-      <td className="px-6 py-4 whitespace-nowrap text-foreground">{review.resultado || review.result}</td>
-      <td className="px-6 py-4 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
-        <Button onClick={() => handleEdit(review)}>Editar</Button>
-        <Button onClick={() => handleDelete(review.id.toString())} className="ml-2 bg-coral">Eliminar</Button>
-      </td>
-    </tr>
+  const renderActions = (review: Review) => (
+    <div className="flex items-center gap-2">
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => handleEdit(review)}
+        title="Editar"
+        icon={<HiOutlinePencilSquare className="w-4 h-4 text-emerald-500" />}
+      />
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => handleDelete(review.id.toString())}
+        title="Eliminar"
+        icon={<HiOutlineTrash className="w-4 h-4 text-rose-500" />}
+      />
+    </div>
   );
 
   return (
-    <div className="p-4">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold dark:text-white">Gestión de Revisiones</h1>
-        <Button onClick={handleCreate}>Crear Revisión</Button>
+    <div className="space-y-6 animate-slide-up text-left">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-[var(--color-text)] to-[var(--color-text-muted)] bg-clip-text text-transparent">
+            Gestión de Revisiones
+          </h1>
+          <p className="text-sm text-[var(--color-text-muted)] mt-1">
+            Programa mantenimientos y auditorías técnicas para los equipos registrados.
+          </p>
+        </div>
+        <Button onClick={handleCreate} variant="primary">
+          Programar Revisión
+        </Button>
       </div>
-      {error && <p className="text-red-500">{error}</p>}
-      <DataTable 
-        headers={headers} 
-        data={reviews} 
-        renderRow={renderRow} 
+
+      {error && (
+        <div className="p-4 bg-rose-500/10 border border-rose-500/20 text-rose-500 rounded-xl text-sm">
+          {error}
+        </div>
+      )}
+
+      <DataTable
+        columns={columns}
+        data={reviews as any[]}
+        actions={renderActions as any}
+        rowKey={(rev: any) => rev.id}
         searchable={true}
         searchPlaceholder="Buscar revisiones..."
       />
+
       {isModalOpen && (
         <ReviewFormModal
           isOpen={isModalOpen}
@@ -84,9 +156,9 @@ const ReviewFormModal = ({ isOpen, onClose, onSave, review }: {
 }) => {
   const { equipments } = useEquipments();
   const [formData, setFormData] = useState({
-    equipment: review?.equipment || '',
-    date: review?.date || '',
-    result: review?.result || '',
+    equipoId: review?.equipoId?.toString() || '',
+    date: review?.fecha?.split('T')[0] || review?.date?.split('T')[0] || '',
+    result: review?.resultado || review?.result || 'Aprobada',
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -95,7 +167,7 @@ const ReviewFormModal = ({ isOpen, onClose, onSave, review }: {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const selectedEquipment = equipments.find(eq => eq.modelo === formData.equipment);
+    const selectedEquipment = equipments.find(eq => eq.id.toString() === formData.equipoId);
     if (!selectedEquipment) {
       alert('Por favor selecciona un equipo válido');
       return;
@@ -105,7 +177,7 @@ const ReviewFormModal = ({ isOpen, onClose, onSave, review }: {
       equipoId: selectedEquipment.id.toString(),
       fecha: formData.date,
       resultado: formData.result,
-      equipment: selectedEquipment.modelo,
+      equipment: `${selectedEquipment.marca} ${selectedEquipment.modelo}`,
       date: formData.date,
       result: formData.result,
     };
@@ -118,35 +190,66 @@ const ReviewFormModal = ({ isOpen, onClose, onSave, review }: {
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={review ? 'Editar Revisión' : 'Crear Revisión'}>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+    <Modal isOpen={isOpen} onClose={onClose} title={review ? 'Editar Revisión' : 'Programar Revisión'}>
+      <form onSubmit={handleSubmit} className="space-y-5 text-left">
         <div className="flex flex-col gap-2">
-          <label htmlFor="equipment">Equipo</label>
-          <select id="equipment" name="equipment" value={formData.equipment} onChange={handleChange} className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+          <label htmlFor="equipoId" className="text-sm font-semibold text-[var(--color-text)]">
+            Equipo a Revisar
+          </label>
+          <select
+            id="equipoId"
+            name="equipoId"
+            required
+            value={formData.equipoId}
+            onChange={handleChange}
+            className="w-full px-4 py-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] shadow-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-sm"
+          >
             <option value="">Selecciona un equipo</option>
-            {equipments.map(equipment => <option key={equipment.id} value={equipment.modelo}>{equipment.modelo}</option>)}
+            {equipments.map(eq => (
+              <option key={eq.id} value={eq.id}>
+                {eq.marca} {eq.modelo} (S/N: {eq.numeroSerie})
+              </option>
+            ))}
           </select>
         </div>
+
         <Input 
-          id='date' 
-          name='date' 
-          type='date'
-          label='Fecha' 
-          placeholder='2023-10-26' 
+          id="date" 
+          name="date" 
+          type="date"
+          label="Fecha Programada" 
           required 
           value={formData.date}
           onChange={handleChange}
         />
-        <Input 
-          id='result' 
-          name='result' 
-          label='Resultado' 
-          placeholder='Aprobada' 
-          required 
-          value={formData.result}
-          onChange={handleChange}
-        />
-        <Button type="submit">Guardar</Button>
+
+        <div className="flex flex-col gap-2">
+          <label htmlFor="result" className="text-sm font-semibold text-[var(--color-text)]">
+            Resultado de la Revisión
+          </label>
+          <select
+            id="result"
+            name="result"
+            required
+            value={formData.result}
+            onChange={handleChange}
+            className="w-full px-4 py-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] shadow-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-sm"
+          >
+            <option value="Aprobada">Aprobada</option>
+            <option value="Reparacion_Necesaria">Reparación Necesaria</option>
+            <option value="Rechazada">Rechazada</option>
+            <option value="Pendiente">Pendiente</option>
+          </select>
+        </div>
+
+        <div className="flex justify-end gap-3 pt-2">
+          <Button variant="ghost" type="button" onClick={onClose}>
+            Cancelar
+          </Button>
+          <Button variant="primary" type="submit">
+            {review ? 'Guardar Cambios' : 'Programar'}
+          </Button>
+        </div>
       </form>
     </Modal>
   );

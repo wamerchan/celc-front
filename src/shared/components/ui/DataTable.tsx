@@ -1,5 +1,5 @@
+
 import React, { useState, useMemo } from 'react';
-import { Spinner } from './Spinner';
 
 interface Column<T> {
   key: string;

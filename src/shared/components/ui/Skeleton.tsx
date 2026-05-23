@@ -2,12 +2,14 @@ import React from 'react';
 
 interface SkeletonProps {
   className?: string;
+  style?: React.CSSProperties;
 }
 
-export function Skeleton({ className = '' }: SkeletonProps) {
+export function Skeleton({ className = '', style }: SkeletonProps) {
   return (
     <div
       className={['rounded-lg shimmer-bg', className].join(' ')}
+      style={style}
       aria-hidden="true"
     />
   );

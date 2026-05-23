@@ -8,6 +8,7 @@ export interface Equipment {
   modelo: string;
   marca: string;
   estado: string;
+  numeroSerie?: string;
 }
 
 export const useEquipments = () => {
@@ -24,6 +25,7 @@ export const useEquipments = () => {
         modelo: e.modelo,
         marca: e.marca,
         estado: e.estado,
+        numeroSerie: e.numeroSerie,
       }));
       setEquipments(mappedEquipments);
     } catch (err) {
