@@ -46,8 +46,9 @@ const AssignmentsView = () => {
     if (window.confirm('¿Estás seguro de que quieres eliminar esta asignación?')) {
       try {
         await removeAssignment(assignmentId);
-      } catch (err) {
-        alert('Error al eliminar asignación');
+      } catch (err: any) {
+        const errMsg = err.response?.data?.message || 'Error al eliminar asignación';
+        alert(errMsg);
       }
     }
   };
@@ -65,8 +66,9 @@ const AssignmentsView = () => {
         await addAssignment(assignment as Omit<Assignment, 'id'>);
       }
       setIsModalOpen(false);
-    } catch (err) {
-      alert('Error al guardar asignación');
+    } catch (err: any) {
+      const errMsg = err.response?.data?.message || 'Error al guardar asignación';
+      alert(errMsg);
     }
   };
 

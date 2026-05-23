@@ -64,8 +64,9 @@ const EquipmentsView = () => {
     if (window.confirm('¿Estás seguro de que quieres eliminar este equipo?')) {
       try {
         await removeEquipment(equipmentId);
-      } catch (err) {
-        alert('Error al eliminar equipo');
+      } catch (err: any) {
+        const errMsg = err.response?.data?.message || 'Error al eliminar equipo';
+        alert(errMsg);
       }
     }
   };
@@ -88,8 +89,9 @@ const EquipmentsView = () => {
         await addEquipment(equipment as Omit<Equipment, 'id'>);
       }
       setIsModalOpen(false);
-    } catch (err) {
-      alert('Error al guardar equipo');
+    } catch (err: any) {
+      const errMsg = err.response?.data?.message || 'Error al guardar equipo';
+      alert(errMsg);
     }
   };
 
@@ -98,8 +100,9 @@ const EquipmentsView = () => {
     try {
       await repairEquipment(currentEquipment.id.toString(), descripcion);
       setIsRepairModalOpen(false);
-    } catch (err) {
-      alert('Error al registrar reparación');
+    } catch (err: any) {
+      const errMsg = err.response?.data?.message || 'Error al registrar reparación';
+      alert(errMsg);
     }
   };
 

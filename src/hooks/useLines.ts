@@ -46,8 +46,9 @@ export const useLines = () => {
         estado: line.estado as LineaEstado,
       });
       await fetchLines();
-    } catch (err) {
-      setError('Error al crear la línea');
+    } catch (err: any) {
+      const msg = err.response?.data?.message || 'Error al crear la línea';
+      setError(msg);
       console.error(err);
       throw err;
     }
@@ -61,8 +62,9 @@ export const useLines = () => {
         estado: line.estado as LineaEstado,
       });
       await fetchLines();
-    } catch (err) {
-      setError('Error al actualizar la línea');
+    } catch (err: any) {
+      const msg = err.response?.data?.message || 'Error al actualizar la línea';
+      setError(msg);
       console.error(err);
       throw err;
     }
@@ -72,8 +74,9 @@ export const useLines = () => {
     try {
       await lineasEndpoints.delete(Number(lineId));
       await fetchLines();
-    } catch (err) {
-      setError('Error al eliminar la línea');
+    } catch (err: any) {
+      const msg = err.response?.data?.message || 'Error al eliminar la línea';
+      setError(msg);
       console.error(err);
       throw err;
     }
@@ -83,8 +86,9 @@ export const useLines = () => {
     try {
       await lineasEndpoints.toggleStatus(Number(lineId));
       await fetchLines();
-    } catch (err) {
-      setError('Error al cambiar el estado');
+    } catch (err: any) {
+      const msg = err.response?.data?.message || 'Error al cambiar el estado';
+      setError(msg);
       console.error(err);
       throw err;
     }

@@ -50,8 +50,9 @@ export const useAssignments = () => {
         equipoId: assignment.equipoId ? Number(assignment.equipoId) : undefined,
       });
       await fetchAssignments();
-    } catch (err) {
-      setError('Error al crear la asignación');
+    } catch (err: any) {
+      const msg = err.response?.data?.message || 'Error al crear la asignación';
+      setError(msg);
       console.error(err);
       throw err;
     }
@@ -65,8 +66,9 @@ export const useAssignments = () => {
         equipoId: assignment.equipoId ? Number(assignment.equipoId) : undefined,
       });
       await fetchAssignments();
-    } catch (err) {
-      setError('Error al actualizar la asignación');
+    } catch (err: any) {
+      const msg = err.response?.data?.message || 'Error al actualizar la asignación';
+      setError(msg);
       console.error(err);
       throw err;
     }
@@ -76,8 +78,9 @@ export const useAssignments = () => {
     try {
       await asignacionesEndpoints.delete(Number(assignmentId));
       await fetchAssignments();
-    } catch (err) {
-      setError('Error al eliminar la asignación');
+    } catch (err: any) {
+      const msg = err.response?.data?.message || 'Error al eliminar la asignación';
+      setError(msg);
       console.error(err);
       throw err;
     }

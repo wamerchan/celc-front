@@ -66,9 +66,14 @@ const ReviewsView = () => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = (reviewId: string) => {
+  const handleDelete = async (reviewId: string) => {
     if (window.confirm('¿Estás seguro de que quieres eliminar esta revisión?')) {
-      removeReview(reviewId);
+      try {
+        await removeReview(reviewId);
+      } catch (err: any) {
+        const errMsg = err.response?.data?.message || 'Error al eliminar revisión';
+        alert(errMsg);
+      }
     }
   };
 
@@ -77,13 +82,18 @@ const ReviewsView = () => {
     setIsModalOpen(true);
   };
 
-  const handleSave = (review: Omit<Review, 'id'> | Review) => {
-    if (currentReview && 'id' in review) {
-      editReview(review as Review);
-    } else {
-      addReview(review as Omit<Review, 'id'>);
+  const handleSave = async (review: Omit<Review, 'id'> | Review) => {
+    try {
+      if (currentReview && 'id' in review) {
+        await editReview(review as Review);
+      } else {
+        await addReview(review as Omit<Review, 'id'>);
+      }
+      setIsModalOpen(false);
+    } catch (err: any) {
+      const errMsg = err.response?.data?.message || 'Error al guardar la revisión';
+      alert(errMsg);
     }
-    setIsModalOpen(false);
   };
 
   const renderActions = (review: Review) => (

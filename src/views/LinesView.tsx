@@ -52,8 +52,9 @@ const LinesView = () => {
     if (window.confirm('¿Estás seguro de que quieres eliminar esta línea?')) {
       try {
         await removeLine(lineId);
-      } catch {
-        alert('Error al eliminar línea');
+      } catch (err: any) {
+        const errMsg = err.response?.data?.message || 'Error al eliminar línea';
+        alert(errMsg);
       }
     }
   };
@@ -66,8 +67,9 @@ const LinesView = () => {
   const handleToggleStatus = async (lineId: string) => {
     try {
       await toggleStatus(lineId);
-    } catch {
-      alert('Error al cambiar estado');
+    } catch (err: any) {
+      const errMsg = err.response?.data?.message || 'Error al cambiar estado';
+      alert(errMsg);
     }
   };
 
@@ -79,8 +81,9 @@ const LinesView = () => {
         await addLine(line as Omit<Line, 'id'>);
       }
       setIsModalOpen(false);
-    } catch {
-      alert('Error al guardar línea');
+    } catch (err: any) {
+      const errMsg = err.response?.data?.message || 'Error al guardar línea';
+      alert(errMsg);
     }
   };
 

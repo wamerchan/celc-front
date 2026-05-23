@@ -40,8 +40,9 @@ const UsersView = () => {
     if (window.confirm('¿Estás seguro de que deseas eliminar este usuario?')) {
       try {
         await removeUser(userId);
-      } catch (err) {
-        alert('Error al eliminar usuario');
+      } catch (err: any) {
+        const errMsg = err.response?.data?.message || 'Error al eliminar usuario';
+        alert(errMsg);
       }
     }
   };
@@ -59,8 +60,9 @@ const UsersView = () => {
         await addUser(user as Omit<User, 'id'>);
       }
       setIsModalOpen(false);
-    } catch (err) {
-      alert('Error al guardar usuario');
+    } catch (err: any) {
+      const errMsg = err.response?.data?.message || 'Error al guardar usuario';
+      alert(errMsg);
     }
   };
 

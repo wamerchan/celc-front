@@ -49,8 +49,9 @@ export const useEquipments = () => {
         estado: equipment.estado as EquipoEstado,
       });
       await fetchEquipments();
-    } catch (err) {
-      setError('Error al crear el equipo');
+    } catch (err: any) {
+      const msg = err.response?.data?.message || 'Error al crear el equipo';
+      setError(msg);
       console.error(err);
       throw err;
     }
@@ -64,8 +65,9 @@ export const useEquipments = () => {
         estado: equipment.estado as EquipoEstado,
       });
       await fetchEquipments();
-    } catch (err) {
-      setError('Error al actualizar el equipo');
+    } catch (err: any) {
+      const msg = err.response?.data?.message || 'Error al actualizar el equipo';
+      setError(msg);
       console.error(err);
       throw err;
     }
@@ -75,8 +77,9 @@ export const useEquipments = () => {
     try {
       await equiposEndpoints.delete(Number(equipmentId));
       await fetchEquipments();
-    } catch (err) {
-      setError('Error al eliminar el equipo');
+    } catch (err: any) {
+      const msg = err.response?.data?.message || 'Error al eliminar el equipo';
+      setError(msg);
       console.error(err);
       throw err;
     }
@@ -86,8 +89,9 @@ export const useEquipments = () => {
     try {
       await apiClient.put(`/equipos/${equipmentId}/repair`, { descripcion });
       await fetchEquipments();
-    } catch (err) {
-      setError('Error al registrar reparación');
+    } catch (err: any) {
+      const msg = err.response?.data?.message || 'Error al registrar reparación';
+      setError(msg);
       console.error(err);
       throw err;
     }

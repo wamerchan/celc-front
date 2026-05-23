@@ -52,9 +52,11 @@ export const useReviews = () => {
         resultado: review.resultado as RevisionResultado,
       });
       await fetchReviews();
-    } catch (err) {
-      setError('Error al crear la revisión');
+    } catch (err: any) {
+      const msg = err.response?.data?.message || 'Error al crear la revisión';
+      setError(msg);
       console.error(err);
+      throw err;
     }
   };
 
@@ -66,9 +68,11 @@ export const useReviews = () => {
         resultado: review.resultado as RevisionResultado,
       });
       await fetchReviews();
-    } catch (err) {
-      setError('Error al actualizar la revisión');
+    } catch (err: any) {
+      const msg = err.response?.data?.message || 'Error al actualizar la revisión';
+      setError(msg);
       console.error(err);
+      throw err;
     }
   };
 
@@ -77,9 +81,11 @@ export const useReviews = () => {
       const id = typeof reviewId === 'string' ? parseInt(reviewId, 10) : reviewId;
       await apiClient.delete(`/revisiones/${id}`);
       await fetchReviews();
-    } catch (err) {
-      setError('Error al eliminar la revisión');
+    } catch (err: any) {
+      const msg = err.response?.data?.message || 'Error al eliminar la revisión';
+      setError(msg);
       console.error(err);
+      throw err;
     }
   };
 

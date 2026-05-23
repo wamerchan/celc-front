@@ -34,8 +34,9 @@ export const useUsers = () => {
         id_rol: user.rol === 'Administrador' ? 1 : 2,
       });
       await fetchUsers(); // Refresh list
-    } catch (err) {
-      setError('Error al crear el usuario');
+    } catch (err: any) {
+      const msg = err.response?.data?.message || 'Error al crear el usuario';
+      setError(msg);
       console.error(err);
       throw err;
     }
@@ -50,8 +51,9 @@ export const useUsers = () => {
         id_rol: user.rol === 'Administrador' ? 1 : 2,
       });
       await fetchUsers(); // Refresh list
-    } catch (err) {
-      setError('Error al actualizar el usuario');
+    } catch (err: any) {
+      const msg = err.response?.data?.message || 'Error al actualizar el usuario';
+      setError(msg);
       console.error(err);
       throw err;
     }
@@ -62,8 +64,9 @@ export const useUsers = () => {
       const id = typeof userId === 'string' ? parseInt(userId, 10) : userId;
       await usuariosEndpoints.delete(id);
       await fetchUsers(); // Refresh list
-    } catch (err) {
-      setError('Error al eliminar el usuario');
+    } catch (err: any) {
+      const msg = err.response?.data?.message || 'Error al eliminar el usuario';
+      setError(msg);
       console.error(err);
       throw err;
     }
