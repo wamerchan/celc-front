@@ -24,6 +24,7 @@ const ReportsView = () => {
     setError(null);
     try {
       let response;
+      let mappedData = [];
       const params = {
         startDate: filters.startDate || undefined,
         endDate: filters.endDate || undefined,
@@ -32,18 +33,45 @@ const ReportsView = () => {
       switch (filters.type) {
         case 'lineas':
           response = await reportesEndpoints.getLineas(params);
+          mappedData = response.data.map((l: any) => {
+            const activeAsg = l.asignaciones?.find((a: any) => !a.fechaDesasignacion);
+            return {
+              id: l.id,
+              numero: l.numeroTelefono,
+              estado: l.estado,
+              plan: l.planDatos || 'Sin Plan',
+              usuario: activeAsg ? `${activeAsg.usuario.nombres} ${activeAsg.usuario.apellidos || ''}`.trim() : 'Sin Asignar',
+            };
+          });
           break;
         case 'equipos':
           response = await reportesEndpoints.getEquipos(params);
+          mappedData = response.data.map((e: any) => {
+            const lastRevision = e.revisiones?.[0];
+            return {
+              id: e.id,
+              modelo: e.modelo,
+              marca: e.marca,
+              estado: e.estado,
+              fechaReparacion: lastRevision ? lastRevision.fechaRealizada || lastRevision.fechaProgramada : null,
+            };
+          });
           break;
         case 'asignaciones':
           response = await reportesEndpoints.getAsignaciones(params);
+          mappedData = response.data.map((a: any) => ({
+            id: a.id,
+            usuario: `${a.usuario.nombres} ${a.usuario.apellidos || ''}`.trim(),
+            linea: a.linea ? `${a.linea.numeroTelefono} (${a.linea.operador})` : 'Sin Línea',
+            equipo: a.equipo ? `${a.equipo.marca} ${a.equipo.modelo}` : 'Sin Equipo',
+            fechaAsignacion: a.fechaAsignacion,
+          }));
           break;
         default:
           throw new Error('Tipo de reporte no válido');
       }
 
-      setReportData(response.data);
+      setReportData(mappedData);
     } catch (err) {
       setError('Error al generar el reporte');
       console.error(err);
