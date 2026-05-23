@@ -46,9 +46,9 @@ export const useAssignments = () => {
     try {
       await asignacionesEndpoints.create({
         usuarioId: Number(assignment.usuarioId),
-        lineaId: assignment.lineaId ? Number(assignment.lineaId) : undefined,
-        equipoId: assignment.equipoId ? Number(assignment.equipoId) : undefined,
-      });
+        lineaId: assignment.lineaId ? Number(assignment.lineaId) : null,
+        equipoId: assignment.equipoId ? Number(assignment.equipoId) : null,
+      } as any);
       await fetchAssignments();
     } catch (err: any) {
       const msg = err.response?.data?.message || 'Error al crear la asignación';
@@ -62,9 +62,9 @@ export const useAssignments = () => {
     try {
       await asignacionesEndpoints.update(Number(assignment.id), {
         usuarioId: Number(assignment.usuarioId),
-        lineaId: assignment.lineaId ? Number(assignment.lineaId) : undefined,
-        equipoId: assignment.equipoId ? Number(assignment.equipoId) : undefined,
-      });
+        lineaId: assignment.lineaId ? Number(assignment.lineaId) : null,
+        equipoId: assignment.equipoId ? Number(assignment.equipoId) : null,
+      } as any);
       await fetchAssignments();
     } catch (err: any) {
       const msg = err.response?.data?.message || 'Error al actualizar la asignación';
