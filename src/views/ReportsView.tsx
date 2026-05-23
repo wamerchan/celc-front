@@ -4,6 +4,10 @@ import { Button } from '../shared/components/ui/Button';
 import { Input } from '../shared/components/ui/Input';
 import { Select } from '../shared/components/ui/Select';
 import { reportesEndpoints } from '../shared/api/endpoints';
+import { HiOutlineDocumentText, HiOutlineArrowDownTray } from 'react-icons/hi2';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import XLSX from 'xlsx-js-style';
 
 const ReportsView = () => {
   const [reportData, setReportData] = useState<any[]>([]);
@@ -154,6 +158,257 @@ const ReportsView = () => {
     }
   };
 
+  const handleExportPDF = () => {
+    try {
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      const typeLabel = filters.type === 'lineas' ? 'Líneas' : filters.type === 'equipos' ? 'Equipos' : 'Asignaciones';
+      const titleText = `Reporte de ${typeLabel}`;
+      const dateText = `Generado el: ${new Date().toLocaleDateString()} a las ${new Date().toLocaleTimeString()}`;
+
+      // Decoración de encabezado (Verde esmeralda de la UI de CELC)
+      doc.setFillColor(16, 185, 129); // Emerald-500
+      doc.rect(0, 0, 210, 8, 'F');
+
+      // Título Principal
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(18);
+      doc.setTextColor(15, 23, 42); // Slate-900
+      doc.text('CELC - Centro de Excelencia en Logística y Calidad', 14, 22);
+
+      // Subtítulo
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(12);
+      doc.setTextColor(71, 85, 105); // Slate-600
+      doc.text(titleText, 14, 29);
+      doc.setFontSize(9);
+      doc.text(dateText, 14, 34);
+
+      // Línea divisora
+      doc.setDrawColor(226, 232, 240); // Slate-200
+      doc.setLineWidth(0.5);
+      doc.line(14, 38, 196, 38);
+
+      // Cabeceras y filas de la tabla
+      let headers: string[] = [];
+      let rows: any[][] = [];
+
+      if (filters.type === 'lineas') {
+        headers = ['Número de Teléfono', 'Estado', 'Plan de Datos', 'Usuario Asignado'];
+        rows = reportData.map(item => [
+          item.numero,
+          item.estado,
+          item.plan,
+          item.usuario
+        ]);
+      } else if (filters.type === 'equipos') {
+        headers = ['Marca', 'Modelo', 'Estado', 'Última Reparación'];
+        rows = reportData.map(item => [
+          item.marca,
+          item.modelo,
+          item.estado,
+          item.fechaReparacion ? new Date(item.fechaReparacion).toLocaleDateString() : 'Ninguna'
+        ]);
+      } else { // asignaciones
+        headers = ['Usuario Responsable', 'Línea de Teléfono', 'Equipo Asignado', 'Fecha de Asignación'];
+        rows = reportData.map(item => [
+          item.usuario,
+          item.linea,
+          item.equipo,
+          item.fechaAsignacion ? new Date(item.fechaAsignacion).toLocaleDateString() : 'N/A'
+        ]);
+      }
+
+      // Dibujar tabla con estilo moderno y consistente
+      autoTable(doc, {
+        head: [headers],
+        body: rows,
+        startY: 44,
+        theme: 'grid',
+        headStyles: {
+          fillColor: [15, 23, 42], // Slate-900
+          textColor: [255, 255, 255],
+          fontSize: 10,
+          fontStyle: 'bold',
+          halign: 'left'
+        },
+        bodyStyles: {
+          fontSize: 9,
+          textColor: [51, 65, 85] // Slate-700
+        },
+        alternateRowStyles: {
+          fillColor: [248, 250, 252] // Slate-50
+        },
+        margin: { left: 14, right: 14 },
+        styles: {
+          overflow: 'linebreak',
+          cellPadding: 3.5
+        },
+        didDrawPage: () => {
+          const str = `Página ${doc.internal.getNumberOfPages()}`;
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(8);
+          doc.setTextColor(148, 163, 184); // Slate-400
+          doc.text(str, 196 - doc.getTextWidth(str), 285);
+        }
+      });
+
+      doc.save(`CELC_Reporte_${filters.type}_${new Date().toISOString().split('T')[0]}.pdf`);
+    } catch (err) {
+      console.error('Error al generar PDF', err);
+      alert('Error al exportar reporte a PDF');
+    }
+  };
+
+  const handleExportExcel = () => {
+    try {
+      const formatted = reportData.map(item => {
+        if (filters.type === 'lineas') {
+          return {
+            'Número de Teléfono': item.numero,
+            'Estado': item.estado,
+            'Plan de Datos': item.plan,
+            'Usuario Asignado': item.usuario
+          };
+        } else if (filters.type === 'equipos') {
+          return {
+            'Marca': item.marca,
+            'Modelo': item.modelo,
+            'Estado': item.estado,
+            'Última Reparación': item.fechaReparacion ? new Date(item.fechaReparacion).toLocaleDateString() : 'Ninguna'
+          };
+        } else { // asignaciones
+          return {
+            'Usuario Responsable': item.usuario,
+            'Línea de Teléfono': item.linea,
+            'Equipo Asignado': item.equipo,
+            'Fecha de Asignación': item.fechaAsignacion ? new Date(item.fechaAsignacion).toLocaleDateString() : 'N/A'
+          };
+        }
+      });
+
+      const ws = XLSX.utils.json_to_sheet(formatted);
+
+      // Paleta de Colores CELC: Slate-900 (#0F172A) para cabeceras, Esmeralda (#10B981) para éxitos
+      const headerStyle = {
+        font: {
+          name: 'Helvetica',
+          sz: 11,
+          bold: true,
+          color: { rgb: 'FFFFFF' }
+        },
+        fill: {
+          fgColor: { rgb: '0F172A' } // Slate-900
+        },
+        alignment: {
+          horizontal: 'center',
+          vertical: 'center'
+        },
+        border: {
+          top: { style: 'thin', color: { rgb: 'E2E8F0' } },
+          bottom: { style: 'medium', color: { rgb: '1E293B' } },
+          left: { style: 'thin', color: { rgb: 'E2E8F0' } },
+          right: { style: 'thin', color: { rgb: 'E2E8F0' } }
+        }
+      };
+
+      const oddRowStyle = {
+        font: { name: 'Helvetica', sz: 10, color: { rgb: '334155' } }, // Slate-700
+        fill: { fgColor: { rgb: 'FFFFFF' } },
+        alignment: { vertical: 'center' },
+        border: {
+          top: { style: 'thin', color: { rgb: 'F1F5F9' } },
+          bottom: { style: 'thin', color: { rgb: 'F1F5F9' } },
+          left: { style: 'thin', color: { rgb: 'F1F5F9' } },
+          right: { style: 'thin', color: { rgb: 'F1F5F9' } }
+        }
+      };
+
+      const evenRowStyle = {
+        font: { name: 'Helvetica', sz: 10, color: { rgb: '334155' } },
+        fill: { fgColor: { rgb: 'F8FAFC' } }, // Slate-50 (zebra-stripe)
+        alignment: { vertical: 'center' },
+        border: {
+          top: { style: 'thin', color: { rgb: 'F1F5F9' } },
+          bottom: { style: 'thin', color: { rgb: 'F1F5F9' } },
+          left: { style: 'thin', color: { rgb: 'F1F5F9' } },
+          right: { style: 'thin', color: { rgb: 'F1F5F9' } }
+        }
+      };
+
+      // Colores de acento según estado
+      const getStatusStyle = (status: string, isEven: boolean) => {
+        const baseColor = isEven ? 'F8FAFC' : 'FFFFFF';
+        let textColor = '334155'; // Slate-700
+        if (status === 'Activa' || status === 'Disponible' || status === 'Aprobada') {
+          textColor = '10B981'; // Emerald-500
+        } else if (status === 'Inactiva' || status === 'Baja' || status === 'Rechazada') {
+          textColor = 'EF4444'; // Red-500
+        } else if (status === 'Suspendida' || status === 'En_Mantenimiento' || status === 'Reparacion_Necesaria') {
+          textColor = 'F59E0B'; // Amber-500
+        } else if (status === 'Asignado') {
+          textColor = '3B82F6'; // Blue-500
+        }
+        return {
+          font: { name: 'Helvetica', sz: 10, bold: true, color: { rgb: textColor } },
+          fill: { fgColor: { rgb: baseColor } },
+          alignment: { horizontal: 'center', vertical: 'center' },
+          border: {
+            top: { style: 'thin', color: { rgb: 'F1F5F9' } },
+            bottom: { style: 'thin', color: { rgb: 'F1F5F9' } },
+            left: { style: 'thin', color: { rgb: 'F1F5F9' } },
+            right: { style: 'thin', color: { rgb: 'F1F5F9' } }
+          }
+        };
+      };
+
+      // Iterar celdas y aplicar formatos
+      const range = XLSX.utils.decode_range(ws['!ref'] || 'A1:A1');
+      for (let R = range.s.r; R <= range.e.r; ++R) {
+        for (let C = range.s.c; C <= range.e.c; ++C) {
+          const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
+          const cell = ws[cellRef];
+          if (!cell) continue;
+
+          if (R === 0) {
+            cell.s = headerStyle;
+          } else {
+            const isEven = R % 2 === 0;
+            const isStatusColumn = (filters.type === 'lineas' && C === 1) || 
+                                   (filters.type === 'equipos' && C === 2);
+            
+            if (isStatusColumn && typeof cell.v === 'string') {
+              cell.s = getStatusStyle(cell.v, isEven);
+            } else {
+              cell.s = JSON.parse(JSON.stringify(isEven ? evenRowStyle : oddRowStyle));
+              if (typeof cell.v === 'number' || cellRef.startsWith('A') || cellRef.startsWith('D')) {
+                cell.s.alignment = { horizontal: 'center', vertical: 'center' };
+              }
+            }
+          }
+        }
+      }
+
+      // Ajustar anchos de columnas
+      const maxProps = Object.keys(formatted[0] || {}).map(key => ({
+        wch: Math.max(key.length + 5, ...formatted.map(item => String((item as any)[key] || '').length + 5))
+      }));
+      ws['!cols'] = maxProps;
+
+      const wb = XLSX.utils.book_new();
+      const sheetName = filters.type === 'lineas' ? 'Líneas' : filters.type === 'equipos' ? 'Equipos' : 'Asignaciones';
+      XLSX.utils.book_append_sheet(wb, ws, sheetName);
+      XLSX.writeFile(wb, `CELC_Reporte_${filters.type}_${new Date().toISOString().split('T')[0]}.xlsx`);
+    } catch (err) {
+      console.error('Error al generar Excel', err);
+      alert('Error al exportar reporte a Excel');
+    }
+  };
+
   const reportTypeOptions = [
     { value: 'lineas', label: 'Reporte de Líneas' },
     { value: 'equipos', label: 'Reporte de Equipos' },
@@ -214,10 +469,28 @@ const ReportsView = () => {
 
       {reportData.length > 0 ? (
         <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <span className="text-xs text-[var(--color-text-muted)] font-medium">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-[var(--color-surface)]/40 p-4 border border-[var(--color-border)]/50 rounded-xl">
+            <span className="text-xs text-[var(--color-text-muted)] font-semibold uppercase tracking-wider">
               Vista previa del reporte generado
             </span>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportPDF}
+                icon={<HiOutlineDocumentText className="w-4 h-4 text-rose-500" />}
+              >
+                Exportar PDF
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportExcel}
+                icon={<HiOutlineArrowDownTray className="w-4 h-4 text-emerald-500" />}
+              >
+                Exportar Excel
+              </Button>
+            </div>
           </div>
           <DataTable
             columns={getColumns() as any[]}
