@@ -26,14 +26,12 @@ export const useUsers = () => {
 
   const addUser = async (user: Omit<User, 'id'>) => {
     try {
-      // Mapping fields to CreateUsuarioDto if necessary, or pass directly
       await usuariosEndpoints.create({
-        nombres: user.nombres,
+        nombre: user.nombres,
         apellidos: user.apellidos || '',
-        correoElectronico: user.email,
-        cedula: '', // Required by CreateUsuarioDto but not present in simple user
-        contrasenaHash: '123456', // default value
-        rolId: user.rol === 'Administrador' ? 1 : 2, // Map rol to rolId
+        email: user.email,
+        password: '123456', // default value
+        id_rol: user.rol === 'Administrador' ? 1 : 2,
       });
       await fetchUsers(); // Refresh list
     } catch (err) {
@@ -46,10 +44,10 @@ export const useUsers = () => {
   const editUser = async (user: User) => {
     try {
       await usuariosEndpoints.update(user.id, {
-        nombres: user.nombres,
+        nombre: user.nombres,
         apellidos: user.apellidos || '',
-        correoElectronico: user.email,
-        rolId: user.rol === 'Administrador' ? 1 : 2,
+        email: user.email,
+        id_rol: user.rol === 'Administrador' ? 1 : 2,
       });
       await fetchUsers(); // Refresh list
     } catch (err) {

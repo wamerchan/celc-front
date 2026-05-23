@@ -96,12 +96,12 @@ export interface CreateRevisionDto {
 }
 
 export interface CreateUsuarioDto {
-  nombres: string;
-  apellidos: string;
-  correoElectronico: string;
-  cedula: string;
-  contrasenaHash: string;
-  rolId: number;
+  nombre: string;
+  apellidos?: string;
+  email: string;
+  password?: string;
+  id_rol: number;
+  cedula?: string;
 }
 
 // Métricas del dashboard
