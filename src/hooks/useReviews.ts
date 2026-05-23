@@ -1,99 +1,82 @@
 import { useState, useEffect } from 'react';
-import * as api from '../services/api';
+import { revisionesEndpoints } from '../shared/api/endpoints';
+import { apiClient } from '../shared/api/client';
+import type { RevisionResultado } from '../shared/types/api.types';
 
-interface ApiReview {
-  id: number;
-  equipoId: string;
+export interface Review {
+  id: string | number;
+  equipment: string;
+  date: string;
+  result: string;
+  equipoId: string | number;
   fecha: string;
   resultado: string;
 }
 
 export const useReviews = () => {
-  const [reviews, setReviews] = useState<api.Review[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchReviews = async () => {
-      try {
-        setLoading(true);
-        const response = await api.reviewsAPI.getReviews();
-        // Transform API data to component format
-        const transformedReviews = response.data.map((review: ApiReview) => ({
-          id: review.id,
-          equipment: `Equipo ${review.equipoId}`, // You might want to fetch equipment name
-          date: review.fecha,
-          result: review.resultado,
-          equipoId: review.equipoId,
-          fecha: review.fecha,
-          resultado: review.resultado,
-        }));
-        setReviews(transformedReviews);
-      } catch (err) {
-        setError('Error al cargar las revisiones');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchReviews = async () => {
+    try {
+      setLoading(true);
+      const response = await revisionesEndpoints.getAll();
+      const transformedReviews = response.data.map((review) => ({
+        id: review.id,
+        equipment: review.equipo ? `${review.equipo.marca} ${review.equipo.modelo}` : `Equipo ${review.equipoId}`,
+        date: review.fechaRealizada || review.fechaProgramada,
+        result: review.resultado || 'Pendiente',
+        equipoId: review.equipoId,
+        fecha: review.fechaProgramada,
+        resultado: review.resultado || 'Pendiente',
+      }));
+      setReviews(transformedReviews);
+    } catch (err) {
+      setError('Error al cargar las revisiones');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchReviews();
   }, []);
 
-  const addReview = async (review: Omit<api.Review, 'id'>) => {
+  const addReview = async (review: Omit<Review, 'id'>) => {
     try {
-      const response = await api.reviewsAPI.createReview({
-        equipoId: review.equipoId,
-        fecha: review.fecha,
-        resultado: review.resultado,
+      await revisionesEndpoints.create({
+        equipoId: Number(review.equipoId),
+        fechaProgramada: review.fecha,
+        resultado: review.resultado as RevisionResultado,
       });
-      // Transform the response back to component format
-      const newReview: api.Review = {
-        id: response.data.id,
-        equipment: `Equipo ${response.data.equipoId}`,
-        date: response.data.fecha,
-        result: response.data.resultado,
-        equipoId: response.data.equipoId,
-        fecha: response.data.fecha,
-        resultado: response.data.resultado,
-      };
-      setReviews((prevReviews) => [...prevReviews, newReview]);
+      await fetchReviews();
     } catch (err) {
       setError('Error al crear la revisión');
       console.error(err);
     }
   };
 
-  const editReview = async (review: api.Review) => {
+  const editReview = async (review: Review) => {
     try {
-      const response = await api.reviewsAPI.updateReview(review.id.toString(), {
-        equipoId: review.equipoId,
-        fecha: review.fecha,
-        resultado: review.resultado,
+      await revisionesEndpoints.update(Number(review.id), {
+        equipoId: Number(review.equipoId),
+        fechaProgramada: review.fecha,
+        resultado: review.resultado as RevisionResultado,
       });
-      // Transform the response back to component format
-      const updatedReview: api.Review = {
-        id: response.data.id,
-        equipment: `Equipo ${response.data.equipoId}`,
-        date: response.data.fecha,
-        result: response.data.resultado,
-        equipoId: response.data.equipoId,
-        fecha: response.data.fecha,
-        resultado: response.data.resultado,
-      };
-      setReviews((prevReviews) =>
-        prevReviews.map((r) => (r.id === updatedReview.id ? updatedReview : r))
-      );
+      await fetchReviews();
     } catch (err) {
       setError('Error al actualizar la revisión');
       console.error(err);
     }
   };
 
-  const removeReview = async (reviewId: string) => {
+  const removeReview = async (reviewId: string | number) => {
     try {
-      await api.reviewsAPI.deleteReview(reviewId);
-      setReviews((prevReviews) => prevReviews.filter((r) => r.id.toString() !== reviewId));
+      const id = typeof reviewId === 'string' ? parseInt(reviewId, 10) : reviewId;
+      await apiClient.delete(`/revisiones/${id}`);
+      await fetchReviews();
     } catch (err) {
       setError('Error al eliminar la revisión');
       console.error(err);
@@ -102,3 +85,4 @@ export const useReviews = () => {
 
   return { reviews, loading, error, addReview, editReview, removeReview };
 };
+export default useReviews;

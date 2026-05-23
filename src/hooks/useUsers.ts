@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { usersAPI } from '../services/api';
-import type { User } from '../context/AuthContext';
+import { usuariosEndpoints } from '../shared/api/endpoints';
+import type { User } from '../features/auth/store/authStore';
 
 export const useUsers = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -10,7 +10,7 @@ export const useUsers = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await usersAPI.getUsers();
+      const response = await usuariosEndpoints.getAll();
       setUsers(response.data);
     } catch (err) {
       setError('Error al cargar los usuarios');
@@ -26,7 +26,15 @@ export const useUsers = () => {
 
   const addUser = async (user: Omit<User, 'id'>) => {
     try {
-      await usersAPI.createUser(user);
+      // Mapping fields to CreateUsuarioDto if necessary, or pass directly
+      await usuariosEndpoints.create({
+        nombres: user.nombres,
+        apellidos: user.apellidos || '',
+        correoElectronico: user.email,
+        cedula: '', // Required by CreateUsuarioDto but not present in simple user
+        contrasenaHash: '123456', // default value
+        rolId: user.rol === 'Administrador' ? 1 : 2, // Map rol to rolId
+      });
       await fetchUsers(); // Refresh list
     } catch (err) {
       setError('Error al crear el usuario');
@@ -37,7 +45,12 @@ export const useUsers = () => {
 
   const editUser = async (user: User) => {
     try {
-      await usersAPI.updateUser(user.id.toString(), user);
+      await usuariosEndpoints.update(user.id, {
+        nombres: user.nombres,
+        apellidos: user.apellidos || '',
+        email: user.email,
+        rol: user.rol,
+      });
       await fetchUsers(); // Refresh list
     } catch (err) {
       setError('Error al actualizar el usuario');
@@ -46,9 +59,10 @@ export const useUsers = () => {
     }
   };
 
-  const removeUser = async (userId: string) => {
+  const removeUser = async (userId: string | number) => {
     try {
-      await usersAPI.deleteUser(userId);
+      const id = typeof userId === 'string' ? parseInt(userId, 10) : userId;
+      await usuariosEndpoints.delete(id);
       await fetchUsers(); // Refresh list
     } catch (err) {
       setError('Error al eliminar el usuario');
@@ -59,3 +73,4 @@ export const useUsers = () => {
 
   return { users, loading, error, addUser, editUser, removeUser, refetch: fetchUsers };
 };
+export default useUsers;

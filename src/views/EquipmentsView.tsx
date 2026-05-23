@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import DataTable from '../components/shared/DataTable';
-import Modal from '../components/shared/Modal';
-import Button from '../components/ui/Button';
-import Input from '../components/ui/Input';
+import DataTable from '../shared/components/ui/DataTable';
+import Modal from '../shared/components/ui/Modal';
+import Button from '../shared/components/ui/Button';
+import Input from '../shared/components/ui/Input';
 import { useEquipments, type Equipment } from '../hooks/useEquipments';
 
 const EquipmentsView = () => {
@@ -62,10 +62,10 @@ const EquipmentsView = () => {
   };
 
   const renderRow = (equipment: Equipment) => (
-    <tr key={equipment.id}>
-      <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{equipment.modelo}</td>
-      <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{equipment.marca}</td>
-      <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">
+    <tr key={equipment.id} className="hover:bg-muted/30 transition-colors group">
+      <td className="px-6 py-4 whitespace-nowrap text-foreground">{equipment.modelo}</td>
+      <td className="px-6 py-4 whitespace-nowrap text-foreground">{equipment.marca}</td>
+      <td className="px-6 py-4 whitespace-nowrap text-foreground">
         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
           equipment.estado === 'In Use' ? 'bg-green-100 text-green-800' :
           equipment.estado === 'In Stock' ? 'bg-blue-100 text-blue-800' :
@@ -74,7 +74,7 @@ const EquipmentsView = () => {
           {equipment.estado}
         </span>
       </td>
-      <td className="px-6 py-4 whitespace-nowrap">
+      <td className="px-6 py-4 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
         <Button onClick={() => handleRepair(equipment)} className="mr-2" variant="secondary">Reparar</Button>
         <Button onClick={() => handleEdit(equipment)} className="mr-2">Editar</Button>
         <Button onClick={() => handleDelete(equipment.id.toString())} variant="danger">Eliminar</Button>

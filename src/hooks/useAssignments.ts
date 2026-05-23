@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import { assignmentsAPI } from '../services/api';
+import { asignacionesEndpoints } from '../shared/api/endpoints';
 
 export interface Assignment {
-  id: string;
-  usuarioId: string;
-  lineaId: string;
-  equipoId: string;
+  id: string | number;
+  usuarioId: string | number;
+  lineaId: string | number;
+  equipoId: string | number;
   usuario?: string;
   linea?: string;
   equipo?: string;
@@ -19,8 +19,17 @@ export const useAssignments = () => {
   const fetchAssignments = async () => {
     try {
       setLoading(true);
-      const response = await assignmentsAPI.getAssignments();
-      setAssignments(response.data);
+      const response = await asignacionesEndpoints.getAll();
+      const mappedAssignments = response.data.map((a) => ({
+        id: a.id,
+        usuarioId: a.usuarioId,
+        lineaId: a.lineaId || '',
+        equipoId: a.equipoId || '',
+        usuario: `${a.usuario.nombres} ${a.usuario.apellidos || ''}`.trim(),
+        linea: a.linea?.numeroTelefono || '',
+        equipo: a.equipo ? `${a.equipo.marca} ${a.equipo.modelo}` : '',
+      }));
+      setAssignments(mappedAssignments);
     } catch (err) {
       setError('Error al cargar las asignaciones');
       console.error(err);
@@ -35,7 +44,11 @@ export const useAssignments = () => {
 
   const addAssignment = async (assignment: Omit<Assignment, 'id'>) => {
     try {
-      await assignmentsAPI.createAssignment(assignment);
+      await asignacionesEndpoints.create({
+        usuarioId: Number(assignment.usuarioId),
+        lineaId: assignment.lineaId ? Number(assignment.lineaId) : undefined,
+        equipoId: assignment.equipoId ? Number(assignment.equipoId) : undefined,
+      });
       await fetchAssignments();
     } catch (err) {
       setError('Error al crear la asignación');
@@ -46,7 +59,11 @@ export const useAssignments = () => {
 
   const editAssignment = async (assignment: Assignment) => {
     try {
-      await assignmentsAPI.updateAssignment(assignment.id.toString(), assignment);
+      await asignacionesEndpoints.update(Number(assignment.id), {
+        usuarioId: Number(assignment.usuarioId),
+        lineaId: assignment.lineaId ? Number(assignment.lineaId) : undefined,
+        equipoId: assignment.equipoId ? Number(assignment.equipoId) : undefined,
+      });
       await fetchAssignments();
     } catch (err) {
       setError('Error al actualizar la asignación');
@@ -55,9 +72,9 @@ export const useAssignments = () => {
     }
   };
 
-  const removeAssignment = async (assignmentId: string) => {
+  const removeAssignment = async (assignmentId: string | number) => {
     try {
-      await assignmentsAPI.deleteAssignment(assignmentId);
+      await asignacionesEndpoints.delete(Number(assignmentId));
       await fetchAssignments();
     } catch (err) {
       setError('Error al eliminar la asignación');
@@ -68,3 +85,4 @@ export const useAssignments = () => {
 
   return { assignments, loading, error, addAssignment, editAssignment, removeAssignment, refetch: fetchAssignments };
 };
+export default useAssignments;

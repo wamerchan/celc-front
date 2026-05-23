@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import DataTable from '../components/shared/DataTable';
-import Modal from '../components/shared/Modal';
-import Button from '../components/ui/Button';
-import Input from '../components/ui/Input';
+import DataTable from '../shared/components/ui/DataTable';
+import Modal from '../shared/components/ui/Modal';
+import Button from '../shared/components/ui/Button';
+import Input from '../shared/components/ui/Input';
 import { useLines, type Line } from '../hooks/useLines';
 
 const LinesView = () => {
@@ -61,17 +61,17 @@ const LinesView = () => {
   };
 
   const renderRow = (line: Line) => (
-    <tr key={line.id}>
-      <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{line.numero}</td>
-      <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">
+    <tr key={line.id} className="hover:bg-muted/30 transition-colors group">
+      <td className="px-6 py-4 whitespace-nowrap text-foreground">{line.numero}</td>
+      <td className="px-6 py-4 whitespace-nowrap text-foreground">
         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
           line.estado === 'Activa' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
         }`}>
           {line.estado}
         </span>
       </td>
-      <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{line.plan}</td>
-      <td className="px-6 py-4 whitespace-nowrap flex gap-2">
+      <td className="px-6 py-4 whitespace-nowrap text-foreground">{line.plan}</td>
+      <td className="px-6 py-4 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
         <button
           onClick={() => handleToggleStatus(line.id.toString())}
           className={`inline-flex items-center justify-center w-8 h-8 rounded-md transition-colors text-white ${

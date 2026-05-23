@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import DataTable from '../components/shared/DataTable';
-import Button from '../components/ui/Button';
-import Input from '../components/ui/Input';
-import Select from '../components/ui/Select';
-import { reportsAPI } from '../services/api';
+import DataTable from '../shared/components/ui/DataTable';
+import Button from '../shared/components/ui/Button';
+import Input from '../shared/components/ui/Input';
+import Select from '../shared/components/ui/Select';
+import { reportesEndpoints } from '../shared/api/endpoints';
 
 const ReportsView = () => {
   const [reportData, setReportData] = useState<any[]>([]);
@@ -31,13 +31,13 @@ const ReportsView = () => {
 
       switch (filters.type) {
         case 'lineas':
-          response = await reportsAPI.getLinesReport(params);
+          response = await reportesEndpoints.getLineas(params);
           break;
         case 'equipos':
-          response = await reportsAPI.getEquipmentsReport(params);
+          response = await reportesEndpoints.getEquipos(params);
           break;
         case 'asignaciones':
-          response = await reportsAPI.getAssignmentsReport(params);
+          response = await reportesEndpoints.getAsignaciones(params);
           break;
         default:
           throw new Error('Tipo de reporte no válido');

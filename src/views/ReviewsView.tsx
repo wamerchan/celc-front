@@ -1,18 +1,17 @@
 import React, { useState } from 'react';
-import DataTable from '../components/shared/DataTable';
-import Modal from '../components/shared/Modal';
-import Button from '../components/ui/Button';
-import Input from '../components/ui/Input';
-import { useReviews } from '../hooks/useReviews';
+import DataTable from '../shared/components/ui/DataTable';
+import Modal from '../shared/components/ui/Modal';
+import Button from '../shared/components/ui/Button';
+import Input from '../shared/components/ui/Input';
+import { useReviews, type Review } from '../hooks/useReviews';
 import { useEquipments } from '../hooks/useEquipments';
-import type { Review } from '../services/api';
 
 const ReviewsView = () => {
   const { reviews, error, addReview, editReview, removeReview } = useReviews();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentReview, setCurrentReview] = useState<Review | null>(null);
 
-  const headers = ['Equipment', 'Date', 'Result', 'Actions'];
+  const headers = ['Equipo', 'Fecha', 'Resultado', 'Acciones'];
 
   const handleEdit = (review: Review) => {
     setCurrentReview(review);
@@ -40,11 +39,11 @@ const ReviewsView = () => {
   };
 
   const renderRow = (review: Review) => (
-    <tr key={review.id}>
-      <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{review.equipment}</td>
-      <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{review.date}</td>
-      <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{review.result}</td>
-      <td className="px-6 py-4 whitespace-nowrap">
+    <tr key={review.id} className="hover:bg-muted/30 transition-colors group">
+      <td className="px-6 py-4 whitespace-nowrap text-foreground">{typeof review.equipment === "object" ? ((review.equipment as any).modelo || (review.equipment as any).marca) : review.equipment || (review as any).equipoId}</td>
+      <td className="px-6 py-4 whitespace-nowrap text-foreground">{review.fecha || review.date}</td>
+      <td className="px-6 py-4 whitespace-nowrap text-foreground">{review.resultado || review.result}</td>
+      <td className="px-6 py-4 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
         <Button onClick={() => handleEdit(review)}>Editar</Button>
         <Button onClick={() => handleDelete(review.id.toString())} className="ml-2 bg-coral">Eliminar</Button>
       </td>
@@ -96,7 +95,6 @@ const ReviewFormModal = ({ isOpen, onClose, onSave, review }: {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Find the selected equipment to get its ID
     const selectedEquipment = equipments.find(eq => eq.modelo === formData.equipment);
     if (!selectedEquipment) {
       alert('Por favor selecciona un equipo válido');
@@ -107,6 +105,9 @@ const ReviewFormModal = ({ isOpen, onClose, onSave, review }: {
       equipoId: selectedEquipment.id.toString(),
       fecha: formData.date,
       resultado: formData.result,
+      equipment: selectedEquipment.modelo,
+      date: formData.date,
+      result: formData.result,
     };
 
     if (review) {
@@ -130,7 +131,7 @@ const ReviewFormModal = ({ isOpen, onClose, onSave, review }: {
           id='date' 
           name='date' 
           type='date'
-          label='Date' 
+          label='Fecha' 
           placeholder='2023-10-26' 
           required 
           value={formData.date}
@@ -139,8 +140,8 @@ const ReviewFormModal = ({ isOpen, onClose, onSave, review }: {
         <Input 
           id='result' 
           name='result' 
-          label='Result' 
-          placeholder='Passed' 
+          label='Resultado' 
+          placeholder='Aprobada' 
           required 
           value={formData.result}
           onChange={handleChange}
@@ -148,7 +149,7 @@ const ReviewFormModal = ({ isOpen, onClose, onSave, review }: {
         <Button type="submit">Guardar</Button>
       </form>
     </Modal>
-  )
-}
+  );
+};
 
 export default ReviewsView;

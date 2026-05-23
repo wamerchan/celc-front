@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import DataTable from '../components/shared/DataTable';
-import Modal from '../components/shared/Modal';
-import Button from '../components/ui/Button';
-import Select from '../components/ui/Select';
+import DataTable from '../shared/components/ui/DataTable';
+import Modal from '../shared/components/ui/Modal';
+import Button from '../shared/components/ui/Button';
+import Select from '../shared/components/ui/Select';
 import { useAssignments, type Assignment } from '../hooks/useAssignments';
 import { useUsers } from '../hooks/useUsers';
 import { useLines } from '../hooks/useLines';
@@ -52,11 +52,11 @@ const AssignmentsView = () => {
   };
 
   const renderRow = (assignment: Assignment) => (
-    <tr key={assignment.id}>
-      <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{assignment.usuario}</td>
-      <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{assignment.linea}</td>
-      <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{assignment.equipo}</td>
-      <td className="px-6 py-4 whitespace-nowrap">
+    <tr key={assignment.id} className="hover:bg-muted/30 transition-colors group">
+      <td className="px-6 py-4 whitespace-nowrap text-foreground">{typeof assignment.usuario === "object" ? ((assignment.usuario as any).nombre || (assignment.usuario as any).nombres) : assignment.usuario}</td>
+      <td className="px-6 py-4 whitespace-nowrap text-foreground">{typeof assignment.linea === "object" ? (assignment.linea as any).numero : assignment.linea}</td>
+      <td className="px-6 py-4 whitespace-nowrap text-foreground">{typeof assignment.equipo === "object" ? (assignment.equipo as any).modelo : assignment.equipo}</td>
+      <td className="px-6 py-4 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
         <Button onClick={() => handleEdit(assignment)} className="mr-2">Editar</Button>
         <Button onClick={() => handleDelete(assignment.id.toString())} variant="danger">Eliminar</Button>
       </td>
@@ -128,7 +128,7 @@ const AssignmentFormModal = ({
     }
   };
 
-  const userOptions = users.map(user => ({ value: user.id, label: user.nombre }));
+  const userOptions = users.map(user => ({ value: user.id, label: `${user.nombres} ${user.apellidos || ''}`.trim() }));
   const lineOptions = lines.map(line => ({ value: line.id, label: line.numero }));
   const equipmentOptions = equipments.map(equipment => ({ value: equipment.id, label: `${equipment.marca} ${equipment.modelo}` }));
 
