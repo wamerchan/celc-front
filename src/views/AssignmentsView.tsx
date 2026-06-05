@@ -1,12 +1,13 @@
 import { useState } from 'react';
-import DataTable from '../components/shared/DataTable';
-import Modal from '../components/shared/Modal';
-import Button from '../components/ui/Button';
-import Select from '../components/ui/Select';
+import { DataTable } from '../shared/components/ui/DataTable';
+import { Modal } from '../shared/components/ui/Modal';
+import { Button } from '../shared/components/ui/Button';
+import { Select } from '../shared/components/ui/Select';
 import { useAssignments, type Assignment } from '../hooks/useAssignments';
 import { useUsers } from '../hooks/useUsers';
 import { useLines } from '../hooks/useLines';
 import { useEquipments } from '../hooks/useEquipments';
+import { HiOutlinePencilSquare, HiOutlineTrash } from 'react-icons/hi2';
 
 const AssignmentsView = () => {
   const { assignments, error, addAssignment, editAssignment, removeAssignment } = useAssignments();
@@ -16,7 +17,25 @@ const AssignmentsView = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentAssignment, setCurrentAssignment] = useState<Assignment | null>(null);
 
-  const headers = ['Usuario', 'Línea', 'Equipo', 'Acciones'];
+  const columns = [
+    {
+      key: 'usuario',
+      header: 'Usuario',
+      sortable: true,
+    },
+    {
+      key: 'linea',
+      header: 'Línea de Comunicación',
+      sortable: true,
+      render: (assignment: Assignment) => assignment.linea || 'Sin Línea',
+    },
+    {
+      key: 'equipo',
+      header: 'Equipo Asignado',
+      sortable: true,
+      render: (assignment: Assignment) => assignment.equipo || 'Sin Equipo',
+    },
+  ];
 
   const handleEdit = (assignment: Assignment) => {
     setCurrentAssignment(assignment);
@@ -27,8 +46,9 @@ const AssignmentsView = () => {
     if (window.confirm('¿Estás seguro de que quieres eliminar esta asignación?')) {
       try {
         await removeAssignment(assignmentId);
-      } catch (err) {
-        alert('Error al eliminar asignación');
+      } catch (err: any) {
+        const errMsg = err.response?.data?.message || 'Error al eliminar asignación';
+        alert(errMsg);
       }
     }
   };
@@ -40,43 +60,68 @@ const AssignmentsView = () => {
 
   const handleSave = async (assignment: Omit<Assignment, 'id'> | Assignment) => {
     try {
-      if ('id' in assignment) {
+      if (currentAssignment && 'id' in assignment) {
         await editAssignment(assignment as Assignment);
       } else {
         await addAssignment(assignment as Omit<Assignment, 'id'>);
       }
       setIsModalOpen(false);
-    } catch (err) {
-      alert('Error al guardar asignación');
+    } catch (err: any) {
+      const errMsg = err.response?.data?.message || 'Error al guardar asignación';
+      alert(errMsg);
     }
   };
 
-  const renderRow = (assignment: Assignment) => (
-    <tr key={assignment.id}>
-      <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{assignment.usuario}</td>
-      <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{assignment.linea}</td>
-      <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{assignment.equipo}</td>
-      <td className="px-6 py-4 whitespace-nowrap">
-        <Button onClick={() => handleEdit(assignment)} className="mr-2">Editar</Button>
-        <Button onClick={() => handleDelete(assignment.id.toString())} variant="danger">Eliminar</Button>
-      </td>
-    </tr>
+  const renderActions = (assignment: Assignment) => (
+    <div className="flex items-center gap-2">
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => handleEdit(assignment)}
+        title="Editar"
+        icon={<HiOutlinePencilSquare className="w-4 h-4 text-emerald-500" />}
+      />
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => handleDelete(assignment.id.toString())}
+        title="Eliminar"
+        icon={<HiOutlineTrash className="w-4 h-4 text-rose-500" />}
+      />
+    </div>
   );
 
   return (
-    <div className="p-4">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold dark:text-white">Asignaciones</h1>
-        <Button onClick={handleCreate}>Crear Asignación</Button>
+    <div className="space-y-6 animate-slide-up text-left">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-[var(--color-text)] to-[var(--color-text-muted)] bg-clip-text text-transparent">
+            Asignaciones de Equipos y Líneas
+          </h1>
+          <p className="text-sm text-[var(--color-text-muted)] mt-1">
+            Asigna dispositivos tecnológicos y números de comunicación a los usuarios registrados en el sistema.
+          </p>
+        </div>
+        <Button onClick={handleCreate} variant="primary">
+          Crear Asignación
+        </Button>
       </div>
-      {error && <p className="text-red-500 mb-4">{error}</p>}
+
+      {error && (
+        <div className="p-4 bg-rose-500/10 border border-rose-500/20 text-rose-500 rounded-xl text-sm mb-4">
+          {error}
+        </div>
+      )}
+
       <DataTable
-        headers={headers}
-        data={assignments}
-        renderRow={renderRow}
+        columns={columns}
+        data={assignments as any[]}
+        actions={renderActions as any}
+        rowKey={(asg: any) => asg.id}
         searchable={true}
         searchPlaceholder="Buscar asignaciones..."
       />
+
       {isModalOpen && (
         <AssignmentFormModal
           isOpen={isModalOpen}
@@ -110,9 +155,9 @@ const AssignmentFormModal = ({
   equipments: any[];
 }) => {
   const [formData, setFormData] = useState({
-    usuarioId: assignment?.usuarioId || '',
-    lineaId: assignment?.lineaId || '',
-    equipoId: assignment?.equipoId || '',
+    usuarioId: assignment?.usuarioId?.toString() || '',
+    lineaId: assignment?.lineaId?.toString() || '',
+    equipoId: assignment?.equipoId?.toString() || '',
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -124,21 +169,41 @@ const AssignmentFormModal = ({
     if (assignment) {
       onSave({ ...assignment, ...formData });
     } else {
-      onSave(formData);
+      onSave(formData as Omit<Assignment, 'id'>);
     }
   };
 
-  const userOptions = users.map(user => ({ value: user.id, label: user.nombre }));
-  const lineOptions = lines.map(line => ({ value: line.id, label: line.numero }));
-  const equipmentOptions = equipments.map(equipment => ({ value: equipment.id, label: `${equipment.marca} ${equipment.modelo}` }));
+  const userOptions = [
+    { value: '', label: 'Seleccionar un usuario' },
+    ...users.map(user => ({
+      value: user.id,
+      label: `${user.nombres} ${user.apellidos || ''}`.trim()
+    }))
+  ];
+
+  const lineOptions = [
+    { value: '', label: 'Ninguna' },
+    ...lines.map(line => ({
+      value: line.id,
+      label: `${line.numero} (${line.operador})`
+    }))
+  ];
+
+  const equipmentOptions = [
+    { value: '', label: 'Ninguno' },
+    ...equipments.map(equipment => ({
+      value: equipment.id,
+      label: `${equipment.marca} ${equipment.modelo} (${equipment.estado})`
+    }))
+  ];
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={assignment ? 'Editar Asignación' : 'Crear Asignación'}>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <form onSubmit={handleSubmit} className="space-y-5 text-left">
         <Select
           id="usuarioId"
           name="usuarioId"
-          label="Usuario"
+          label="Usuario Responsable"
           options={userOptions}
           value={formData.usuarioId}
           onChange={handleChange}
@@ -147,22 +212,27 @@ const AssignmentFormModal = ({
         <Select
           id="lineaId"
           name="lineaId"
-          label="Línea"
+          label="Línea Telefónica Asociada"
           options={lineOptions}
           value={formData.lineaId}
           onChange={handleChange}
-          required
         />
         <Select
           id="equipoId"
           name="equipoId"
-          label="Equipo"
+          label="Equipo Tecnológico"
           options={equipmentOptions}
           value={formData.equipoId}
           onChange={handleChange}
-          required
         />
-        <Button type="submit">Guardar</Button>
+        <div className="flex justify-end gap-3 pt-2">
+          <Button variant="ghost" type="button" onClick={onClose}>
+            Cancelar
+          </Button>
+          <Button variant="primary" type="submit">
+            {assignment ? 'Guardar Cambios' : 'Asignar'}
+          </Button>
+        </div>
       </form>
     </Modal>
   );

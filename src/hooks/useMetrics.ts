@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { metricsAPI } from '../services/api';
+import { metricasEndpoints } from '../shared/api/endpoints';
 
 export const useMetrics = () => {
   const [metrics, setMetrics] = useState({
@@ -15,14 +15,14 @@ export const useMetrics = () => {
       try {
         setLoading(true);
         const [totalActiveLinesRes, equipmentsInRepairRes, upcomingReviewsRes] = await Promise.all([
-          metricsAPI.getTotalActiveLines(),
-          metricsAPI.getEquipmentsInRepair(),
-          metricsAPI.getUpcomingReviews(),
+          metricasEndpoints.getLineasActivas(),
+          metricasEndpoints.getEquiposEnReparacion(),
+          metricasEndpoints.getRevisionesProximas(),
         ]);
         setMetrics({
-          totalActiveLines: totalActiveLinesRes.data,
-          equipmentsInRepair: equipmentsInRepairRes.data,
-          upcomingReviews: upcomingReviewsRes.data
+          totalActiveLines: totalActiveLinesRes.data.count,
+          equipmentsInRepair: equipmentsInRepairRes.data.count,
+          upcomingReviews: upcomingReviewsRes.data.count
         });
       } catch (err) {
         setError('Error al cargar las métricas');
@@ -37,3 +37,4 @@ export const useMetrics = () => {
 
   return { metrics, loading, error };
 };
+export default useMetrics;

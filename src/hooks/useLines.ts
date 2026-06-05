@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { linesAPI } from '../services/api';
+import { lineasEndpoints } from '../shared/api/endpoints';
+import type { LineaEstado } from '../shared/types/api.types';
 
 export interface Line {
-  id: string;
+  id: string | number;
   numero: string;
   estado: string;
   plan: string;
@@ -16,8 +17,14 @@ export const useLines = () => {
   const fetchLines = async () => {
     try {
       setLoading(true);
-      const response = await linesAPI.getLines();
-      setLines(response.data);
+      const response = await lineasEndpoints.getAll();
+      const mappedLines = response.data.map((l) => ({
+        id: l.id,
+        numero: l.numeroTelefono,
+        estado: l.estado,
+        plan: l.planDatos || '',
+      }));
+      setLines(mappedLines);
     } catch (err) {
       setError('Error al cargar las líneas');
       console.error(err);
@@ -32,10 +39,16 @@ export const useLines = () => {
 
   const addLine = async (line: Omit<Line, 'id'>) => {
     try {
-      await linesAPI.createLine(line);
+      await lineasEndpoints.create({
+        numeroTelefono: line.numero,
+        operador: 'Claro',
+        planDatos: line.plan,
+        estado: line.estado as LineaEstado,
+      });
       await fetchLines();
-    } catch (err) {
-      setError('Error al crear la línea');
+    } catch (err: any) {
+      const msg = err.response?.data?.message || 'Error al crear la línea';
+      setError(msg);
       console.error(err);
       throw err;
     }
@@ -43,32 +56,39 @@ export const useLines = () => {
 
   const editLine = async (line: Line) => {
     try {
-      await linesAPI.updateLine(line.id.toString(), line);
+      await lineasEndpoints.update(Number(line.id), {
+        numeroTelefono: line.numero,
+        planDatos: line.plan,
+        estado: line.estado as LineaEstado,
+      });
       await fetchLines();
-    } catch (err) {
-      setError('Error al actualizar la línea');
+    } catch (err: any) {
+      const msg = err.response?.data?.message || 'Error al actualizar la línea';
+      setError(msg);
       console.error(err);
       throw err;
     }
   };
 
-  const removeLine = async (lineId: string) => {
+  const removeLine = async (lineId: string | number) => {
     try {
-      await linesAPI.deleteLine(lineId);
+      await lineasEndpoints.delete(Number(lineId));
       await fetchLines();
-    } catch (err) {
-      setError('Error al eliminar la línea');
+    } catch (err: any) {
+      const msg = err.response?.data?.message || 'Error al eliminar la línea';
+      setError(msg);
       console.error(err);
       throw err;
     }
   };
 
-  const toggleStatus = async (lineId: string) => {
+  const toggleStatus = async (lineId: string | number) => {
     try {
-      await linesAPI.toggleStatus(lineId);
+      await lineasEndpoints.toggleStatus(Number(lineId));
       await fetchLines();
-    } catch (err) {
-      setError('Error al cambiar el estado');
+    } catch (err: any) {
+      const msg = err.response?.data?.message || 'Error al cambiar el estado';
+      setError(msg);
       console.error(err);
       throw err;
     }
@@ -76,3 +96,4 @@ export const useLines = () => {
 
   return { lines, loading, error, addLine, editLine, removeLine, toggleStatus, refetch: fetchLines };
 };
+export default useLines;

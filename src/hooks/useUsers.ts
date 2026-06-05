@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { usersAPI } from '../services/api';
-import type { User } from '../context/AuthContext';
+import { usuariosEndpoints } from '../shared/api/endpoints';
+import type { User } from '../features/auth/store/authStore';
 
 export const useUsers = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -10,7 +10,7 @@ export const useUsers = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await usersAPI.getUsers();
+      const response = await usuariosEndpoints.getAll();
       setUsers(response.data);
     } catch (err) {
       setError('Error al cargar los usuarios');
@@ -26,10 +26,17 @@ export const useUsers = () => {
 
   const addUser = async (user: Omit<User, 'id'>) => {
     try {
-      await usersAPI.createUser(user);
+      await usuariosEndpoints.create({
+        nombre: user.nombres,
+        apellidos: user.apellidos || '',
+        email: user.email,
+        password: '123456', // default value
+        id_rol: user.rol === 'Administrador' ? 1 : 2,
+      });
       await fetchUsers(); // Refresh list
-    } catch (err) {
-      setError('Error al crear el usuario');
+    } catch (err: any) {
+      const msg = err.response?.data?.message || 'Error al crear el usuario';
+      setError(msg);
       console.error(err);
       throw err;
     }
@@ -37,21 +44,29 @@ export const useUsers = () => {
 
   const editUser = async (user: User) => {
     try {
-      await usersAPI.updateUser(user.id.toString(), user);
+      await usuariosEndpoints.update(user.id, {
+        nombre: user.nombres,
+        apellidos: user.apellidos || '',
+        email: user.email,
+        id_rol: user.rol === 'Administrador' ? 1 : 2,
+      });
       await fetchUsers(); // Refresh list
-    } catch (err) {
-      setError('Error al actualizar el usuario');
+    } catch (err: any) {
+      const msg = err.response?.data?.message || 'Error al actualizar el usuario';
+      setError(msg);
       console.error(err);
       throw err;
     }
   };
 
-  const removeUser = async (userId: string) => {
+  const removeUser = async (userId: string | number) => {
     try {
-      await usersAPI.deleteUser(userId);
+      const id = typeof userId === 'string' ? parseInt(userId, 10) : userId;
+      await usuariosEndpoints.delete(id);
       await fetchUsers(); // Refresh list
-    } catch (err) {
-      setError('Error al eliminar el usuario');
+    } catch (err: any) {
+      const msg = err.response?.data?.message || 'Error al eliminar el usuario';
+      setError(msg);
       console.error(err);
       throw err;
     }
@@ -59,3 +74,4 @@ export const useUsers = () => {
 
   return { users, loading, error, addUser, editUser, removeUser, refetch: fetchUsers };
 };
+export default useUsers;

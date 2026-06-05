@@ -1,207 +1,369 @@
-# CELC Frontend - Sistema de Gestión de Telecomunicaciones
+# CELC Frontend — Sistema de Gestión de Telecomunicaciones
 
-Frontend moderno y responsivo para el Sistema de Control de Equipos y Líneas de Comunicación (CELC), construido con React, TypeScript y Vite.
+Frontend moderno y responsivo para el **Sistema de Control de Equipos y Líneas de Comunicación (CELC)**, construido con **React 19**, **TypeScript** y **Vite 7**.
 
-## 📋 Descripción del Proyecto
+---
 
-CELC Frontend es una aplicación web administrativa que permite:
-- 👤 Gestión de usuarios y roles
-- 📱 Control de líneas telefónicas
-- 🔧 Administración de equipos
-- 📋 Asignaciones de equipos y líneas
-- 🔍 Revisiones y mantenimiento
-- 📊 Dashboard con métricas en tiempo real
-- 📈 Reportes y análisis
+## 📋 Descripción
+
+SPA administrativa que permite la gestión integral de líneas celulares, equipos terminales, asignaciones a usuarios, revisiones técnicas, reportes exportables y un dashboard con métricas en tiempo real.
+
+### Funcionalidades principales
+
+- 👤 Gestión de usuarios con roles (Administrador, Técnico, Empleado)
+- 📱 CRUD de líneas telefónicas con cambio de estado
+- 🔧 CRUD de equipos terminales
+- 📋 Asignación de equipos/líneas a usuarios
+- 🔍 Revisiones y mantenimiento de equipos
+- 📊 Dashboard con métricas en tiempo real (ECharts)
+- 📈 Reportes exportables a PDF y Excel
+- 🔐 Autenticación JWT con persistencia de sesión
+- 🌓 Modo oscuro/claro
+
+---
 
 ## 🛠️ Stack Tecnológico
 
-### Framework & Build
-- **React 18+** - Librería UI moderna
-- **TypeScript** - Tipado estático para JavaScript
-- **Vite 7+** - Build tool ultrarrápido con HMR (Hot Module Replacement)
-- **Tailwind CSS** - Framework de estilos utilitarios
+### Core
 
-### State Management & HTTP
-- **React Context API** - Gestión de estado de autenticación
-- **Axios** - Cliente HTTP con interceptores para JWT
+| Tecnología       | Versión | Propósito                        |
+| ---------------- | ------- | -------------------------------- |
+| **React**        | ^19.1   | Librería UI                      |
+| **TypeScript**   | ~5.9    | Tipado estático                  |
+| **Vite**         | ^7.1    | Bundler + dev server con HMR     |
+| **Tailwind CSS** | ^4.3    | Framework de estilos utility-first |
 
-### Routing & UI
-- **React Router v6** - Navegación SPA
-- **React Icons** - Librería de iconos
-- **PostCSS** - Procesamiento de CSS
+### Estado y Datos
+
+| Tecnología | Versión | Propósito                             |
+| ---------- | ------- | ------------------------------------- |
+| **Zustand** | ^5.0   | State management global (stores)      |
+| **Axios**   | ^1.12  | Cliente HTTP con interceptores JWT    |
+
+### Routing y UI
+
+| Tecnología          | Versión | Propósito                    |
+| ------------------- | ------- | ---------------------------- |
+| **React Router**    | ^7.9    | Navegación SPA               |
+| **React Icons**     | ^5.5    | Set de iconos                |
+| **ECharts**         | ^6.1    | Gráficos del dashboard       |
+| **echarts-for-react** | ^3.0  | Wrapper React para ECharts   |
+
+### Exportación de Reportes
+
+| Tecnología          | Versión | Propósito                    |
+| ------------------- | ------- | ---------------------------- |
+| **jsPDF**           | ^4.2    | Generación de PDFs           |
+| **jspdf-autotable** | ^5.0    | Tablas en PDF                |
+| **SheetJS (xlsx)**  | ^0.18   | Exportación a Excel          |
+| **xlsx-js-style**   | ^1.2    | Estilos en Excel             |
+
+### Testing
+
+| Tecnología              | Versión | Propósito                     |
+| ----------------------- | ------- | ----------------------------- |
+| **Vitest**              | ^4.1    | Test runner (Vite-native)     |
+| **@testing-library/react** | ^16.3 | Testing de componentes React  |
+| **jsdom**               | ^29.1   | Entorno DOM para tests        |
 
 ### Desarrollo
-- **ESLint** - Linting de código
-- **TypeScript Strict Mode** - Validación de tipos rigurosa
+
+| Tecnología            | Versión | Propósito                      |
+| --------------------- | ------- | ------------------------------ |
+| **ESLint**            | ^9.36   | Linting                        |
+| **PostCSS**           | ^8.5    | Procesamiento CSS              |
+| **pnpm**              | —       | Gestor de paquetes (workspace) |
+
+---
 
 ## 📁 Estructura del Proyecto
 
 ```
 celc-frontend/
 ├── src/
-│   ├── components/
-│   │   ├── shared/           # Componentes reutilizables
-│   │   │   ├── DataTable.tsx # Tabla genérica con búsqueda
-│   │   │   └── Modal.tsx     # Modal reutilizable
-│   │   └── ui/               # Componentes UI básicos
-│   │       ├── Button.tsx
-│   │       └── Input.tsx
-│   ├── context/
-│   │   ├── AuthContext.tsx   # Context de autenticación con JWT
-│   │   └── NavigationContext.tsx
-│   ├── hooks/                # Custom hooks
+│   ├── features/                     # Módulos por funcionalidad
+│   │   ├── auth/                     # Autenticación (store + lógica)
+│   │   │   └── store/authStore.ts    #   Zustand store de auth
+│   │   ├── dashboard/                # Dashboard (hooks)
+│   │   ├── asignaciones/             # Asignaciones (hooks)
+│   │   ├── equipos/                  # Equipos (hooks)
+│   │   ├── lineas/                   # Líneas (hooks)
+│   │   ├── reportes/                 # Reportes (hooks)
+│   │   ├── revisiones/               # Revisiones (hooks)
+│   │   └── usuarios/                 # Usuarios (hooks)
+│   │
+│   ├── shared/                       # Recursos compartidos
+│   │   ├── api/                      # Cliente HTTP y endpoints
+│   │   │   ├── client.ts             #   Axios instance + interceptores
+│   │   │   └── endpoints/index.ts    #   Todos los endpoints tipados
+│   │   ├── components/
+│   │   │   ├── ui/                   # Componentes UI base
+│   │   │   │   ├── Badge.tsx
+│   │   │   │   ├── Button.tsx
+│   │   │   │   ├── DataTable.tsx     #   Tabla genérica con búsqueda
+│   │   │   │   ├── Input.tsx
+│   │   │   │   ├── Modal.tsx         #   Modal reutilizable
+│   │   │   │   ├── Select.tsx
+│   │   │   │   ├── Skeleton.tsx
+│   │   │   │   └── Spinner.tsx
+│   │   │   └── layout/               # Componentes de layout
+│   │   │       ├── Header.tsx        #   Header con controles de tema/usuario
+│   │   │       └── Sidebar.tsx       #   Sidebar de navegación
+│   │   ├── hooks/                    # Custom hooks compartidos
+│   │   └── types/
+│   │       └── api.types.ts          # Tipos TypeScript sincronizados con backend
+│   │
+│   ├── hooks/                        # Custom hooks específicos
 │   │   ├── useUsers.ts
 │   │   ├── useLines.ts
 │   │   ├── useEquipments.ts
 │   │   ├── useAssignments.ts
 │   │   ├── useReviews.ts
 │   │   └── useMetrics.ts
+│   │
+│   ├── store/                        # Zustand stores globales
+│   │   ├── useDataStore.ts           #   Cache de datos con refresh
+│   │   └── useUIStore.ts             #   Sidebar, tema, notificaciones
+│   │
+│   ├── views/                        # Páginas principales
+│   │   ├── LoginView.tsx
+│   │   ├── DashboardView.tsx
+│   │   ├── UsersView.tsx
+│   │   ├── LinesView.tsx
+│   │   ├── EquipmentsView.tsx
+│   │   ├── AssignmentsView.tsx
+│   │   ├── ReviewsView.tsx
+│   │   └── ReportsView.tsx
+│   │
 │   ├── layouts/
-│   │   └── AppLayout.tsx     # Layout principal con sidebar y header
-│   ├── services/
-│   │   └── api.ts            # Configuración de Axios y endpoints
-│   ├── views/                # Páginas principales
-│   │   ├── LoginView.tsx     # Página de login con diseño moderno
-│   │   ├── DashboardView.tsx # Dashboard con métricas
-│   │   ├── UsersView.tsx     # CRUD de usuarios
-│   │   ├── LinesView.tsx     # CRUD de líneas
-│   │   ├── EquipmentsView.tsx # CRUD de equipos
-│   │   ├── AssignmentsView.tsx # Gestión de asignaciones
-│   │   ├── ReviewsView.tsx   # Gestión de revisiones
-│   │   └── ReportsView.tsx   # Reportes
-│   ├── assets/               # Imágenes y logos
-│   │   ├── bg-celc.jpg       # Imagen de fondo para login
-│   │   ├── celc-logo.png     # Logo modo oscuro
-│   │   └── celc-logo1.png    # Logo modo claro
-│   ├── App.tsx               # Componente raíz
-│   ├── App.css               # Estilos globales
-│   ├── index.css             # Configuración Tailwind
-│   └── main.tsx              # Punto de entrada
+│   │   └── AppLayout.tsx             # Layout principal con sidebar + header
+│   │
+│   ├── assets/                       # Imágenes y recursos
+│   │   ├── bg-celc.jpg               #   Fondo para login
+│   │   ├── celc-logo.png             #   Logo modo oscuro
+│   │   ├── celc-logo1.png            #   Logo modo claro
+│   │   └── react.svg
+│   │
+│   ├── App.tsx                       # Componente raíz con routing
+│   ├── App.css                       # Estilos globales
+│   ├── index.css                     # Configuración Tailwind
+│   ├── main.tsx                      # Punto de entrada
+│   └── setupTests.ts                 # Setup de testing
+│
 ├── public/
-│   └── vite.svg
 ├── package.json
-├── vite.config.ts            # Configuración Vite
-├── tailwind.config.js        # Configuración Tailwind CSS
-├── postcss.config.js         # Configuración PostCSS
-├── eslint.config.js          # Configuración ESLint
+├── pnpm-workspace.yaml
+├── vite.config.ts
+├── postcss.config.js
+├── eslint.config.js
+├── tsconfig.json / tsconfig.app.json / tsconfig.node.json
 └── README.md
 ```
+
+---
 
 ## 🎨 Características Principales
 
 ### Autenticación
-- Sistema JWT con token almacenado en `localStorage`
-- Verificación automática de token al cargar la aplicación
-- Protección de rutas con `ProtectedRoute`
-- Restauración de sesión al refrescar la página
+- Sistema JWT con store en **Zustand** (`features/auth/store/authStore.ts`)
+- Token persistido en `localStorage` con restauración automática
+- Interceptor de Axios que inyecta el token en cada request
+- Logout automático al recibir 401
+- Protección de rutas con `ProtectedRoute` (por rol opcional)
 
 ### Interfaz de Usuario
-- **Diseño moderno minimalista** con gradientes y efectos
-- **Modo oscuro/claro** con cambio dinámico de temas
+- **Diseño moderno minimalista** con variables CSS personalizadas
+- **Modo oscuro/claro** con cambio dinámico (persistido en localStorage)
+- **Logo adaptativo** que cambia según el modo seleccionado
+- **Responsive design** con sidebar colapsable en móvil
+- **Animaciones suaves** con Tailwind CSS
+- **Notificaciones toast** vía UIStore
 - **Logo adaptativo** que cambia según el modo seleccionado
 - **Responsive design** para móvil, tablet y escritorio
 - **Animaciones suaves** con Tailwind CSS
 
 ### Gestión de Datos
-- **DataTable** genérica con búsqueda en vivo
+- **DataTable** genérica con búsqueda en vivo y ordenamiento
 - **Operaciones CRUD** completas para todos los módulos
-- **Validación de formularios** con inputs controlados
-- **Feedback visual** con modales de confirmación
+- **Cache inteligente** con timestamps de última actualización (vía `useDataStore`)
+- **Feedback visual** con modales, toasts y skeletons
 
 ### API Integration
-- **Configuración centralizada** de endpoints en `api.ts`
-- **Interceptores de Axios** para agregar token JWT automáticamente
-- **Manejo de errores** consistente
-- **Llamadas paralelas** con `Promise.all` en hooks
+- **Cliente Axios centralizado** en `shared/api/client.ts` con interceptores
+- **Inyección automática de token JWT** en cada request
+- **Logout automático** ante respuestas 401
+- **Endpoints tipados** en `shared/api/endpoints/`
+
+---
 
 ## 🚀 Instalación y Uso
 
 ### Requisitos
-- Node.js 16+ 
-- npm 7+
+- Node.js 18+
+- pnpm 8+
 
 ### Instalación
+
 ```bash
 cd celc-frontend
-npm install
+pnpm install
 ```
 
 ### Desarrollo
+
 ```bash
-npm run dev
+pnpm dev
 ```
-La aplicación estará disponible en `http://localhost:5173` (o el siguiente puerto disponible)
+
+La app estará disponible en `http://localhost:5173`
 
 ### Build Producción
+
 ```bash
-npm run build
+pnpm build
 ```
 
-### Preview de Build
+### Preview del Build
+
 ```bash
-npm run preview
+pnpm preview
 ```
 
 ### Linting
+
 ```bash
-npm run lint
+pnpm lint
 ```
+
+### Testing
+
+```bash
+pnpm test
+```
+
+---
 
 ## 🔐 Autenticación
 
 ### Flujo de Login
+
 1. Usuario ingresa credenciales en `LoginView.tsx`
-2. Se envía POST a `/api/auth/login`
-3. Backend retorna `{ token, user }`
-4. Token se almacena en `localStorage`
+2. Se envía `POST /api/auth/login` al backend
+3. El backend retorna `{ token, user }`
+4. `authStore` (Zustand) persiste token y user en `localStorage`
 5. Usuario es redirigido al dashboard
 
-### Verificación de Token
-1. Al cargar la app, `AuthContext` llama a `GET /api/auth/verify`
-2. Si el token es válido, restaura la sesión
-3. Si el token es inválido, hace logout automático
+### Verificación de Sesión
+
+1. Al cargar la app, `App.tsx` ejecuta `checkSession()` del authStore
+2. Si el token existe, se llama a `GET /api/auth/verify`
+3. Si es válido, se restaura la sesión
+4. Si expiró, se ejecuta `logout()` automático
 
 ### Protección de Rutas
-```typescript
-<ProtectedRoute>
-  <DashboardView />
+
+```tsx
+<ProtectedRoute requiredRole="Administrador">
+  <UsersView />
 </ProtectedRoute>
 ```
+
+---
+
+## 🧩 Gestión de Estado con Zustand
+
+| Store           | Archivo                        | Propósito                              |
+| --------------- | ------------------------------ | -------------------------------------- |
+| `useAuthStore`  | `features/auth/store/authStore.ts` | Token, usuario, login/logout/verify  |
+| `useDataStore`  | `store/useDataStore.ts`        | Cache de datos CRUD con refresh        |
+| `useUIStore`    | `store/useUIStore.ts`          | Sidebar, tema, notificaciones toast    |
+
+---
 
 ## 📡 Endpoints de API
 
 ### Autenticación
-- `POST /api/auth/login` - Login
-- `GET /api/auth/verify` - Verificar token
+
+| Método | Ruta              | Descripción         |
+| ------ | ----------------- | ------------------- |
+| POST   | `/api/auth/login`  | Iniciar sesión      |
+| GET    | `/api/auth/verify` | Verificar token JWT |
 
 ### Usuarios
-- `GET /api/usuarios` - Listar usuarios
-- `POST /api/usuarios` - Crear usuario
-- `PUT /api/usuarios/:id` - Actualizar usuario
-- `DELETE /api/usuarios/:id` - Eliminar usuario
+
+| Método | Ruta                    | Descripción        |
+| ------ | ----------------------- | ------------------ |
+| GET    | `/api/usuarios`         | Listar usuarios    |
+| GET    | `/api/usuarios/:id`     | Obtener usuario    |
+| POST   | `/api/usuarios`         | Crear usuario      |
+| PUT    | `/api/usuarios/:id`     | Actualizar usuario |
+| DELETE | `/api/usuarios/:id`     | Eliminar usuario   |
 
 ### Líneas
-- `GET /api/lineas` - Listar líneas
-- `POST /api/lineas` - Crear línea
-- `PUT /api/lineas/:id` - Actualizar línea
-- `DELETE /api/lineas/:id` - Eliminar línea
-- `PUT /api/lineas/:id/toggle` - Cambiar estado (Activa/Inactiva)
+
+| Método | Ruta                       | Descripción                       |
+| ------ | -------------------------- | --------------------------------- |
+| GET    | `/api/lineas`              | Listar líneas                     |
+| GET    | `/api/lineas/:id`          | Obtener línea                     |
+| POST   | `/api/lineas`              | Crear línea                       |
+| PUT    | `/api/lineas/:id`          | Actualizar línea                  |
+| DELETE | `/api/lineas/:id`          | Eliminar línea                    |
+| PUT    | `/api/lineas/:id/toggle`   | Cambiar estado (Activa/Inactiva)  |
 
 ### Equipos
-- `GET /api/equipos` - Listar equipos
-- `POST /api/equipos` - Crear equipo
-- `PUT /api/equipos/:id` - Actualizar equipo
-- `DELETE /api/equipos/:id` - Eliminar equipo
 
-### Métricas
-- `GET /api/metricas/lineas-activas` - Cantidad de líneas activas
-- `GET /api/metricas/equipos-reparacion` - Equipos en reparación
-- `GET /api/metricas/revisiones-proximas` - Revisiones próximas
-- `GET /api/metricas/dashboard` - Todas las métricas
+| Método | Ruta                    | Descripción        |
+| ------ | ----------------------- | ------------------ |
+| GET    | `/api/equipos`          | Listar equipos     |
+| GET    | `/api/equipos/:id`      | Obtener equipo     |
+| POST   | `/api/equipos`          | Crear equipo       |
+| PUT    | `/api/equipos/:id`      | Actualizar equipo  |
+| DELETE | `/api/equipos/:id`      | Eliminar equipo    |
+
+### Asignaciones
+
+| Método | Ruta                         | Descripción             |
+| ------ | ---------------------------- | ----------------------- |
+| GET    | `/api/asignaciones`          | Listar asignaciones     |
+| GET    | `/api/asignaciones/:id`      | Obtener asignación      |
+| POST   | `/api/asignaciones`          | Crear asignación        |
+| PUT    | `/api/asignaciones/:id`      | Actualizar asignación   |
+| DELETE | `/api/asignaciones/:id`      | Eliminar asignación     |
+
+### Revisiones
+
+| Método | Ruta                     | Descripción         |
+| ------ | ------------------------ | ------------------- |
+| GET    | `/api/revisiones`        | Listar revisiones   |
+| GET    | `/api/revisiones/:id`    | Obtener revisión    |
+| POST   | `/api/revisiones`        | Crear revisión      |
+| PUT    | `/api/revisiones/:id`    | Actualizar revisión |
+
+### Reportes
+
+| Método | Ruta                           | Descripción                    |
+| ------ | ------------------------------ | ------------------------------ |
+| GET    | `/api/reportes/lineas`         | Reporte de líneas (con filtro) |
+| GET    | `/api/reportes/equipos`        | Reporte de equipos             |
+| GET    | `/api/reportes/asignaciones`   | Reporte de asignaciones        |
+
+### Métricas (Dashboard)
+
+| Método | Ruta                                 | Descripción                        |
+| ------ | ------------------------------------ | ---------------------------------- |
+| GET    | `/api/metricas/dashboard`            | Todas las métricas del dashboard   |
+| GET    | `/api/metricas/lineas-activas`       | Cantidad de líneas activas         |
+| GET    | `/api/metricas/equipos-reparacion`   | Equipos en reparación              |
+| GET    | `/api/metricas/revisiones-proximas`  | Revisiones próximas a vencer       |
+
+---
 
 ## 🎭 Temas y Estilos
 
-### Variables CSS Definidas
+### Variables CSS
+
+El diseño utiliza variables CSS personalizadas definidas en `index.css`:
+
 ```css
 --background, --foreground
 --card, --card-foreground
@@ -213,75 +375,79 @@ npm run lint
 --border, --input, --ring
 ```
 
-### Tema Oscuro
-Activable mediante botón en el header. Los colores se invierten automáticamente.
+### Modo Oscuro
+
+Activable desde el botón en el Header. La preferencia se persiste en `localStorage` con la clave `celc-theme`. Los logos se adaptan automáticamente al modo activo.
+
+---
 
 ## 📱 Componentes Principales
 
 ### LoginView
-- Diseño minimalista con imagen de fondo
-- Campos con validación
-- Indicador de carga durante autenticación
-- Credenciales de prueba mostradas
+- Diseño minimalista con imagen de fondo `bg-celc.jpg`
+- Campos con validación y estados de carga
+- Manejo de errores con feedback visual
 
 ### AppLayout
-- Sidebar con navegación
-- Header con controles de tema y usuario
-- Logo adaptativo (cambia según modo)
-- Responsive: sidebar se oculta en móviles
+- Sidebar con navegación y links activos
+- Header con selector de tema, notificaciones y menú de usuario
+- Logo adaptativo (cambia según modo oscuro/claro)
+- Responsive: sidebar colapsable en móviles
 
 ### DataTable
-- Búsqueda en vivo
-- Ordenamiento (opcional)
-- Renderización personalizable de filas
-- Estilos adaptados a Tailwind
+- Búsqueda en vivo con filtrado
+- Ordenamiento por columnas
+- Skeletons durante carga
+- Estilos consistentes con Tailwind CSS
 
 ### Modal
-- Componente reutilizable
-- Cierre al hacer clic fuera
-- Animaciones suaves
-
-## 🔧 Hooks Personalizados
-
-### useUsers
-- `getUsers()` - Obtener lista de usuarios
-- `addUser(user)` - Crear usuario
-- `editUser(id, user)` - Editar usuario
-- `removeUser(id)` - Eliminar usuario
-
-### useLines
-- `getLines()` - Obtener lista de líneas
-- `addLine(line)` - Crear línea
-- `editLine(id, line)` - Editar línea
-- `removeLine(id)` - Eliminar línea
-- `toggleStatus(id)` - Cambiar estado
-
-## 📊 Variables de Entorno
-
-Crear archivo `.env.local`:
-```
-VITE_API_URL=http://localhost:3001/api
-```
-
-## 📝 Comentarios en Código
-
-Todos los archivos siguen el estándar de comentarios en español:
-```typescript
-// Descripción breve de la funcionalidad - 23 de octubre de 2025 - WM Developer
-```
-
-## 🤝 Contribución
-
-Los cambios de código deben incluir:
-1. Comentarios en español explicando la lógica
-2. Fecha del cambio
-3. Identificación del desarrollador (WM Developer)
-
-## 📄 Licencia
-
-Proyecto privado - Sistema CELC
+- Componente reutilizable con slots header/body/footer
+- Cierre al hacer clic fuera (click outside)
+- Animaciones suaves de entrada/salida
 
 ---
 
-**Última actualización**: 23 de octubre de 2025
-**Desarrollador**: WM Developer
+## 🔧 Hooks Personalizados
+
+| Hook               | Archivo                    | Métodos                                     |
+| ------------------ | -------------------------- | ------------------------------------------- |
+| `useUsers`         | `hooks/useUsers.ts`        | `getUsers`, `addUser`, `editUser`, `removeUser` |
+| `useLines`         | `hooks/useLines.ts`        | `getLines`, `addLine`, `editLine`, `removeLine`, `toggleStatus` |
+| `useEquipments`    | `hooks/useEquipments.ts`   | `getEquipos`, `addEquipo`, `editEquipo`, `removeEquipo` |
+| `useAssignments`   | `hooks/useAssignments.ts`  | `getAsignaciones`, `addAsignacion`, `editAsignacion`, `removeAsignacion` |
+| `useReviews`       | `hooks/useReviews.ts`      | `getRevisiones`, `addRevision`, `editRevision` |
+| `useMetrics`       | `hooks/useMetrics.ts`      | `getDashboardMetrics`                         |
+
+---
+
+## 📊 Variables de Entorno
+
+Crear archivo `.env` o `.env.local` en la raíz:
+
+```env
+VITE_API_URL=http://localhost:3001/api
+```
+
+---
+
+## 🧪 Testing
+
+```bash
+# Ejecutar tests (Vitest)
+pnpm test
+
+# Modo watch
+pnpm test -- --watch
+```
+
+Los tests usan `jsdom` como entorno y `@testing-library/react` para los componentes. Configuración en `vite.config.ts`.
+
+---
+
+## 📄 Licencia
+
+Proyecto privado — Sistema CELC.
+
+---
+
+**Última actualización**: 4 de junio de 2026
